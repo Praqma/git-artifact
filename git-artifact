@@ -1,0 +1,159 @@
+#!/bin/bash
+#
+# git-artifact: use a git repository as artifact management storage
+#
+
+if test -z "$GIT_EXEC_PATH" || ! test -f "$GIT_EXEC_PATH/git-sh-setup" || {
+	test "${PATH#"${GIT_EXEC_PATH}:"}" = "$PATH" &&
+	test ! "$GIT_EXEC_PATH" -ef "${PATH%%:*}" 2>/dev/null
+}
+then
+	basename=${0##*[/\\]}
+	echo >&2 'It looks like either your git installation or your'
+	echo >&2 'git-subtree installation is broken.'
+	echo >&2
+	echo >&2 "Tips:"
+	echo >&2 " - If \`git --exec-path\` does not print the correct path to"
+	echo >&2 "   your git install directory, then set the GIT_EXEC_PATH"
+	echo >&2 "   environment variable to the correct directory."
+	echo >&2 " - Make sure that your \`$basename\` file is either in your"
+	echo >&2 "   PATH or in your git exec path (\`$(git --exec-path)\`)."
+	echo >&2 " - You should run git-subtree as \`git ${basename#git-}\`,"
+	echo >&2 "   not as \`$basename\`." >&2
+	exit 126
+fi
+
+#inspiration: https://github.com/git/git/blob/master/contrib/subtree/git-subtree.sh
+OPTS_SPEC="\
+git artifact init  --url=<remote-url> 
+git artifact clone --url=<remote-url> 
+git artifact add   --push --force --commit <artifact-tag> 
+git artifact push  --force                 <artifact-tag>
+git artifact set   --context <context>
+--
+h,help        show the help
+q             quiet
+d             show debug messages
+u,url=        the url 
+ options for 'init'
+push=         add a prefix to commit message of new commits
+ options for 'add'
+e,existing=   create a new branch from the split subtree
+ options for 'init'
+n,new=        create a new branch from the split subtree
+ options for 'init'
+f,force=      create a new branch from the split subtree
+ options for 'add' and 'push'
+m,message=    use the given message as the commit message for the merge commit
+"
+
+# Usage: debug [MSG...]
+debug () {
+	if test -n "$arg_debug"
+	then
+		printf "%s%s\n" '' "$*" >&2
+	fi
+}
+cmd_init() {
+	echo "I am $arg_command"
+}
+
+cmd_clone() {
+	echo "I am $arg_command"
+}
+
+main () {
+	if test $# -eq 0
+	then
+		set -- -h
+	fi
+	#set -x
+	set_args="$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
+	# Set the arguments array for "real" flag parsing.
+	eval "$set_args"
+	. git-sh-setup
+#	require_work_tree
+
+	# Begin "real" flag parsing.
+	arg_debug=
+	arg_artifacttag=
+	while test $# -gt 0
+	do
+		opt="$1" # command
+		shift
+
+		case "$opt" in
+		-q)
+			GIT_QUIET=1
+			;;
+		-d)
+			arg_debug=1
+			;;
+		--url|-u)
+			arg_remoteurl="$1"
+			shift
+			;;
+		--push)
+			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			arg_push=1
+			shift
+			;;
+		-m)
+			test -n "$allow_addmerge" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			arg_addmerge_message="$1"
+			shift
+			;;
+		--no-prefix)
+			arg_prefix=
+			;;
+		--onto)
+			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			arg_split_onto="$1"
+			shift
+			;;
+		--no-onto)
+			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			arg_split_onto=
+			;;
+		--rejoin)
+			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			;;
+		--no-rejoin)
+			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			;;
+		--ignore-joins)
+			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			arg_split_ignore_joins=1
+			;;
+		--no-ignore-joins)
+			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			arg_split_ignore_joins=
+			;;
+		--squash)
+			test -n "$allow_addmerge" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			arg_addmerge_squash=1
+			;;
+		--no-squash)
+			test -n "$allow_addmerge" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
+			arg_addmerge_squash=
+			;;
+		--)
+			break
+			;;
+		*)
+			die "Unexpected option: $opt"
+			;;
+		esac
+	done
+	arg_command=$1
+
+	debug "command: {$arg_command}"
+	debug "quiet: {$GIT_QUIET}"
+	debug "opts: {$*}"
+	debug
+
+	"cmd_$arg_command" "$@"
+}
+
+
+main "$@"
