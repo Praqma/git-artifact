@@ -1,0 +1,36 @@
+#!/bin/bash
+set -euo pipefail
+
+[[ ${debug:-} == true ]] && set -x
+if [[ ${1:-} == "" ]] ; then 
+  echo "ERROR: please set remote-url as first parameter"
+  exit 1
+else
+  remoteurl=$1
+fi
+
+pwd
+
+dir=$(basename $remoteurl | sed -e 's/\.git//g' )
+mkdir -p $dir
+cd $dir
+
+default_delivery_branch="latest"
+delivery_branch=$default_delivery_branch
+
+git init
+git remote add origin $remoteurl
+git config --local remote.origin.fetch +refs/heads/master:refs/remotes/origin/master
+touch setup.sh .gitignore .gitattributes
+echo "#Add git artifact repo description and instructions here" > README.md
+git add .
+git commit -m "git-artifact repo $remoteurl init"
+git push origin HEAD:refs/heads/master -f
+
+echo "Init delivery branch: $delivery_branch"
+git checkout -b $delivery_branch
+git branch $delivery_branch --set-upstream-to origin/master
+
+git branch -v
+
+echo "Ready to receive artifacts.."

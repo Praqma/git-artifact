@@ -1,0 +1,32 @@
+#!/bin/bash
+set -euo pipefail
+
+[[ ${debug:-} == true ]] && set -x
+if [[ ${1:-} == "" ]] ; then 
+  echo "ERROR: please set artifact-revision as first parameter"
+  exit 1
+else
+  artifact_revision=$1
+fi
+current_branch=$(git branch --show-current)
+
+git config --local remote.origin.fetch +refs/heads/${current_branch}:refs/remotes/origin/${current_branch}
+
+echo "Push the tag"
+git push origin $artifact_revision:refs/tags/$artifact_revision -f
+
+echo "Push the tag using force"
+git push origin -f HEAD:refs/heads/$current_branch || {
+  echo "Force push failed.. try delete and push"
+  git push origin :refs/heads/$current_branch
+  git push origin HEAD:refs/heads/$current_branch
+} 
+git fetch origin +refs/heads/${current_branch}:refs/remotes/origin/${current_branch}
+
+git log -2 --oneline --decorate --graph
+
+echo "All good.. get back to clear state for next artifact..."
+git reset --hard origin/master
+git clean -xfd 
+
+ls -la

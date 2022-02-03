@@ -1,0 +1,15 @@
+#!/bin/bash
+set -euo pipefail
+
+[[ ${debug:-} == true ]] && set -x
+if [[ ${1:-} == "" ]] ; then 
+  echo "ERROR: please set artifact-revision as first parameter"
+  exit 1
+else
+  artifact_revision=$1
+fi
+current_branch=$(git branch --show-current)
+
+git artifact-add-new-artifact-revision ${artifact_revision}
+
+git artifact-push-new-artifact ${artifact_revision}
