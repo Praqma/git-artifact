@@ -25,23 +25,19 @@ fi
 
 #inspiration: https://github.com/git/git/blob/master/contrib/subtree/git-subtree.sh
 OPTS_SPEC="\
-git artifact init  --url=<remote-url> 
-git artifact clone --url=<remote-url> 
-git artifact add   --push --force --commit <artifact-tag> 
-git artifact push  --force                 <artifact-tag>
+git artifact init  --url=<remote-url>                            # Use this command for init a new repo 
+git artifact clone --url=<remote-url>                            # Use this command for clone an existing repo
+git artifact add   [--push] [--force] [--commit] <artifact-tag>  
+git artifact push  --force                       <artifact-tag>
 git artifact set   --context <context>
 --
 h,help        show the help
 q             quiet
 d             show debug messages
-u,url=        the url 
- options for 'init'
+u,url=        the remote url for eiter a
+ options for 'init' and 'clone'
 push=         add a prefix to commit message of new commits
  options for 'add'
-e,existing=   create a new branch from the split subtree
- options for 'init'
-n,new=        create a new branch from the split subtree
- options for 'init'
 f,force=      create a new branch from the split subtree
  options for 'add' and 'push'
 m,message=    use the given message as the commit message for the merge commit
@@ -62,12 +58,14 @@ cmd_clone() {
 	echo "I am $arg_command"
 }
 
+cmd_add() {
+	echo "I am $arg_command"
+}
+
 main () {
-	if test $# -eq 0
-	then
+	if [[ $# -eq 0 ]] ; then
 		set -- -h
 	fi
-	#set -x
 	set_args="$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
 	# Set the arguments array for "real" flag parsing.
 	eval "$set_args"
@@ -94,7 +92,6 @@ main () {
 			shift
 			;;
 		--push)
-			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
 			arg_push=1
 			shift
 			;;
