@@ -12,16 +12,15 @@ fi
 pwd
 
 dir=$(basename $remoteurl | sed -e 's/\.git//g' )
-mkdir -p $dir
-cd $dir
-
 default_delivery_branch="latest"
 delivery_branch=$default_delivery_branch
 
-git init
+git init $dir
+cd $dir
 git remote add origin $remoteurl
 git config --local remote.origin.fetch +refs/heads/master:refs/remotes/origin/master
-touch setup.sh .gitignore .gitattributes
+mkdir .gitartifact
+touch .gitartifact/config .gitignore .gitattributes
 echo "#Add git artifact repo description and instructions here" > README.md
 git add .
 git commit -m "git-artifact repo $remoteurl init"

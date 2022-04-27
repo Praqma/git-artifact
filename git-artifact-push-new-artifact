@@ -15,7 +15,7 @@ git config --local remote.origin.fetch +refs/heads/${current_branch}:refs/remote
 echo "Push the tag"
 git push origin $artifact_revision:refs/tags/$artifact_revision -f
 
-echo "Push the tag using force"
+echo "Push the branch using force"
 git push origin -f HEAD:refs/heads/$current_branch || {
   echo "Force push failed.. try delete and push"
   git push origin :refs/heads/$current_branch
