@@ -12,6 +12,10 @@ fi
 pwd
 
 dir=$(basename $remoteurl | sed -e 's/\.git//g' )
+if [ -d $dir ]; then 
+  echo "ERROR: $dir already exists"
+  exit 1
+fi
 default_delivery_branch="latest"
 delivery_branch=$default_delivery_branch
 
@@ -32,4 +36,4 @@ git branch $delivery_branch --set-upstream-to origin/master
 
 git branch -v
 
-echo "Ready to receive artifacts.."
+echo "Ready to receive artifacts.. directory: $dir"

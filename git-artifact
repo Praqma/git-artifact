@@ -27,20 +27,15 @@ fi
 OPTS_SPEC="\
 git artifact init  --url=<remote-url>                            # Use this command for init a new repo 
 git artifact clone --url=<remote-url>                            # Use this command for clone an existing repo
-git artifact add   [--push] [--force] [--commit] <artifact-tag>  
-git artifact push  --force                       <artifact-tag>
-git artifact set   --context <context>
+git artifact add-n-push <artifact_tag>  
 --
 h,help        show the help
 q             quiet
 d             show debug messages
-u,url=        the remote url for eiter a
+
+
  options for 'init' and 'clone'
-push=         add a prefix to commit message of new commits
- options for 'add'
-f,force=      create a new branch from the split subtree
- options for 'add' and 'push'
-m,message=    use the given message as the commit message for the merge commit
+u,url=        the remote url
 "
 
 # Usage: debug [MSG...]
@@ -52,14 +47,20 @@ debug () {
 }
 cmd_init() {
 	echo "I am $arg_command"
+	git-artifact-init-new ${arg_remoteurl}
 }
 
 cmd_clone() {
 	echo "I am $arg_command"
+	git-artifact-init-existing ${arg_remoteurl}
 }
 
-cmd_add() {
+cmd_add-n-push() {
 	echo "I am $arg_command"
+	. git-sh-setup
+	require_work_tree
+
+	git-artifact-add-n-push-new-artifact $arg_artifacttag
 }
 
 main () {
@@ -69,9 +70,6 @@ main () {
 	set_args="$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
 	# Set the arguments array for "real" flag parsing.
 	eval "$set_args"
-	. git-sh-setup
-#	require_work_tree
-
 	# Begin "real" flag parsing.
 	arg_debug=
 	arg_artifacttag=
@@ -143,6 +141,7 @@ main () {
 		esac
 	done
 	arg_command=$1
+	arg_artifacttag=$2
 
 	debug "command: {$arg_command}"
 	debug "quiet: {$GIT_QUIET}"

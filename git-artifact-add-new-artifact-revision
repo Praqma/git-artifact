@@ -17,4 +17,4 @@ echo "Commit the artifacts"
 git commit -q -m "$artifact_revision"
 
 echo "Tagging the artifacts: $artifact_revision"
-git tag -m "$artifact_revision" $artifact_revision
+git tag -a -m "$artifact_revision" $artifact_revision
