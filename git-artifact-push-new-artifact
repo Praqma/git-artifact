@@ -10,7 +10,9 @@ else
 fi
 current_branch=$(git branch --show-current)
 
-git config --local remote.origin.fetch +refs/heads/${current_branch}:refs/remotes/origin/${current_branch}
+git config --local --add remote.origin.fetch +refs/heads/${current_branch}:refs/remotes/origin/${current_branch} || {
+  echo "Already exists.. - never mind"
+} 
 
 echo "Push the tag"
 git push origin $artifact_revision:refs/tags/$artifact_revision -f
