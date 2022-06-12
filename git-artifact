@@ -37,7 +37,6 @@ d             show debug messages
  options for 'init' and 'clone'
 u,url=        the remote url
 "
-
 # Usage: debug [MSG...]
 debug () {
 	if test -n "$arg_debug"
@@ -46,24 +45,19 @@ debug () {
 	fi
 }
 cmd_init() {
-	echo "I am $arg_command"
 	git-artifact-init-new ${arg_remoteurl}
 }
 
 cmd_clone() {
-	echo "I am $arg_command"
 	git-artifact-init-existing ${arg_remoteurl}
 }
 
 cmd_add-n-push() {
-	echo "I am $arg_command"
-	. git-sh-setup
-	require_work_tree
-
 	git-artifact-add-n-push-new-artifact $arg_artifacttag
 }
 
 main () {
+	
 	if [[ $# -eq 0 ]] ; then
 		set -- -h
 	fi
@@ -89,60 +83,38 @@ main () {
 			arg_remoteurl="$1"
 			shift
 			;;
-		--push)
-			arg_push=1
-			shift
-			;;
-		-m)
-			test -n "$allow_addmerge" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			arg_addmerge_message="$1"
-			shift
-			;;
-		--no-prefix)
-			arg_prefix=
-			;;
-		--onto)
-			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			arg_split_onto="$1"
-			shift
-			;;
-		--no-onto)
-			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			arg_split_onto=
-			;;
-		--rejoin)
-			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			;;
-		--no-rejoin)
-			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			;;
-		--ignore-joins)
-			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			arg_split_ignore_joins=1
-			;;
-		--no-ignore-joins)
-			test -n "$allow_split" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			arg_split_ignore_joins=
-			;;
-		--squash)
-			test -n "$allow_addmerge" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			arg_addmerge_squash=1
-			;;
-		--no-squash)
-			test -n "$allow_addmerge" || die "The '$opt' flag does not make sense with 'git subtree $arg_command'."
-			arg_addmerge_squash=
-			;;
-		--)
-			break
-			;;
 		*)
 			die "Unexpected option: $opt"
 			;;
 		esac
 	done
 	arg_command=$1
-	arg_artifacttag=$2
-
+	shift
+	arg_artifacttag=$1
+	shift
+	which git-sh-setup
+	case "$arg_command" in
+		init)	if test -z ${arg_remoteurl:-}  ; then
+					git artifact -h
+					echo "ERROR: --url <url> required for $arg_command"
+					exit 1
+				fi
+				;;
+		clone) 	if test -z ${arg_remoteurl:-}  ; then
+					git artifact -h
+					echo "ERROR: --url <url> required for $arg_command"
+					exit 1
+				fi
+				;;
+		add-n-push)
+				. git-sh-setup
+				require_work_tree
+				;;
+		*)		printf  "Unknown command: %s\n\n" "$arg_command"
+				git artifact -h
+				exit 1
+				;;
+	esac
 	debug "command: {$arg_command}"
 	debug "quiet: {$GIT_QUIET}"
 	debug "opts: {$*}"
