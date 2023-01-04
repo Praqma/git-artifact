@@ -56,27 +56,40 @@ debug () {
 		printf "%s%s\n" '' "$*" >&2
 	fi
 }
-cmd_init() {
-	#git-artifact-init-new ${arg_remoteurl} ${arg_path}		
-	local _dir=
+
+
+set_repo_dir() {
+	local -n _ref_dir=${1}
 	if [[ $arg_path != ""  ]]; then
-		_dir=$arg_path
+		_ref_dir=$arg_path
 	else		
-		_dir=$(basename "$arg_remoteurl" | sed -e 's/\.git//g' )
+		_ref_dir=$(basename "$arg_remoteurl" | sed -e 's/\.git//g' )
 	fi
-	if [[ -d ${_dir} ]]; then 
-		echo "ERROR: Directory '${_dir}' already exists"
+	if [[ -d ${_ref_dir} ]]; then 
+		echo "ERROR: Directory '${_ref_dir}' already exists"
 		exit 1
 	fi
+
+}
+
+set_base_branch() {
+	local -n _ref_base_branch=${1}
+	if git config --global init.defaultBranch ; then 
+		_ref_base_branch=$(git config --global init.defaultBranch)
+		echo "INFO: Using init.defaultBranch $_ref_base_branch as the base branch"
+	else
+		_ref_base_branch="main"
+		echo "INFO: Using git default branch: $_ref_base_branch as the base branch"
+	fi
+
+}
+
+cmd_init() {
+	local _dir=
+	set_repo_dir _dir
 	
 	local _base_branch=
-	if git config --global init.defaultBranch ; then 
-		_base_branch=$(git config --global init.defaultBranch)
-		echo "INFO: Using init.defaultBranch $_base_branch as the base branch"
-	else
-		_base_branch="main"
-		echo "INFO: Using git default branch: $_base_branch as the base branch"
-	fi
+	set_base_branch _base_branch
 
 	git init -b "${_base_branch}" "$_dir" 
 	cd "$_dir"
@@ -105,29 +118,14 @@ cmd_init() {
 }
 
 cmd_clone() {
-	#git-artifact-init-existing ${arg_remoteurl}
-	pwd
-
-	if git config --global init.defaultBranch ; then 
-		base_branch=$(git config --global init.defaultBranch)
-		echo "INFO: Using init.defaultBranch $base_branch as the base branch"
-	else
-		base_branch="main"
-		echo "INFO: Using git default branch: $base_branch as the base branch"
-	fi
 
 	local _dir=
-	if [[ $arg_path != ""  ]]; then
-		_dir=$arg_path
-	else		
-		_dir=$(basename "$arg_remoteurl" | sed -e 's/\.git//g' )
-	fi
-	if [[ -d ${_dir} ]]; then 
-		echo "ERROR: Directory '${_dir}' already exists"
-		exit 1
-	fi
+	set_repo_dir _dir
+	
+	local _base_branch=
+	set_base_branch _base_branch
 
- 	git clone --single-branch --branch "$base_branch" "$arg_remoteurl" "${_dir}"
+ 	git clone --single-branch --branch "$_base_branch" "$arg_remoteurl" "${_dir}"
 	cd "${_dir}"
 
 	if [[ -e ./setup.sh ]]; then
@@ -141,7 +139,7 @@ cmd_clone() {
 	if [[ -n ${arg_branch:-} ]]; then
 		echo "INFO: Init branch: ${arg_branch}"
 		git checkout -b "${arg_branch}"
-		git branch "${arg_branch}" --set-upstream-to "origin/${base_branch}"
+		git branch "${arg_branch}" --set-upstream-to "origin/${_base_branch}"
 	fi
 
 	git branch -v
@@ -185,15 +183,9 @@ cmd_push-artifact(){
 	echo "All good.. get back to clear state for next artifact..."
 	
 	local _base_branch=
-	if git config --global init.defaultBranch ; then 
-		_base_branch=$(git config --global init.defaultBranch)
-		echo "INFO: Using init.defaultBranch $_base_branch as the base branch"
-	else
-		_base_branch="main"
-		echo "INFO: Using git default branch: $_base_branch as the base branch"
-	fi
+	set_base_branch _base_branch
 	
-	git reset --hard origin/${_base_branch}
+	git reset --hard origin/"${_base_branch}"
 	git clean -xfd 
 }
 
