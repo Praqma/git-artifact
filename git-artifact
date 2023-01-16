@@ -4,36 +4,37 @@
 #
 
 if test -z "$GIT_EXEC_PATH" || ! test -f "$GIT_EXEC_PATH/git-sh-setup" || {
-	test "${PATH#"${GIT_EXEC_PATH}:"}" = "$PATH" &&
-	test ! "$GIT_EXEC_PATH" -ef "${PATH%%:*}" 2>/dev/null
+    test "${PATH#"${GIT_EXEC_PATH}:"}" = "$PATH" &&
+    test ! "$GIT_EXEC_PATH" -ef "${PATH%%:*}" 2>/dev/null
 }
 then
-	basename=${0##*[/\\]}
-	echo >&2 'It looks like either your git installation or your'
-	echo >&2 'git-subtree installation is broken.'
-	echo >&2
-	echo >&2 "Tips:"
-	echo >&2 " - If \`git --exec-path\` does not print the correct path to"
-	echo >&2 "   your git install directory, then set the GIT_EXEC_PATH"
-	echo >&2 "   environment variable to the correct directory."
-	echo >&2 " - Make sure that your \`$basename\` file is either in your"
-	echo >&2 "   PATH or in your git exec path (\`$(git --exec-path)\`)."
-	echo >&2 " - You should run git-subtree as \`git ${basename#git-}\`,"
-	echo >&2 "   not as \`$basename\`." >&2
-	exit 126
+    basename=${0##*[/\\]}
+    echo >&2 'It looks like either your git installation or your'
+    echo >&2 'git-subtree installation is broken.'
+    echo >&2
+    echo >&2 "Tips:"
+    echo >&2 " - If \`git --exec-path\` does not print the correct path to"
+    echo >&2 "   your git install directory, then set the GIT_EXEC_PATH"
+    echo >&2 "   environment variable to the correct directory."
+    echo >&2 " - Make sure that your \`$basename\` file is either in your"
+    echo >&2 "   PATH or in your git exec path (\`$(git --exec-path)\`)."
+    echo >&2 " - You should run git-subtree as \`git ${basename#git-}\`,"
+    echo >&2 "   not as \`$basename\`." >&2
+    exit 126
 fi
 
 #inspiration: https://github.com/git/git/blob/master/contrib/subtree/git-subtree.sh
 OPTS_SPEC="\
-	git artifact commmand <options>
+    git artifact commmand <options>
 
 commands:
 
 init			inititialize a new repository
 clone			clone and existing repository from the remote
 add-n-tag		add and commit files to repo
-push-tag		push a tag
+push            push a tag
 add-n-push		add and commit files to repo and then push them
+fetch-co   		fetch tag from remote and checkout it out
 --
 h,help        show the help
 q             quiet
@@ -43,245 +44,305 @@ d             show debug messages
 u,url=        the remote url
 p,path=       the optional path for init and clone 
 
- options for 'init', 'clone', 'add-n-tag', 'push-tag', 'add-n-push'
+ options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
 b,branch=     use branch for local changes and pushes
 
- options for 'add-n-tag', 'push-tag', 'add-n-push'
+ options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
 t,tag=         the tag to be created
 "
 
 debug () {
-	if test -n "$arg_debug"
-	then
-		printf "%s%s\n" '' "$*" >&2
-	fi
+    if test -n "$arg_debug"
+    then
+        printf "%s%s\n" '' "$*" >&2
+    fi
 }
 
 
 set_repo_dir() {
-	local -n _ref_dir=${1}
-	if [[ $arg_path != ""  ]]; then
-		_ref_dir=$arg_path
-	else		
-		_ref_dir=$(basename "$arg_remoteurl" | sed -e 's/\.git//g' )
-	fi
-	if [[ -d ${_ref_dir} ]]; then 
-		echo "ERROR: Directory '${_ref_dir}' already exists"
-		exit 1
-	fi
+    local -n _ref_dir=${1}
+    if [[ $arg_path != ""  ]]; then
+        _ref_dir=$arg_path
+    else		
+        _ref_dir=$(basename "$arg_remoteurl" | sed -e 's/\.git//g' )
+    fi
+    if [[ -d ${_ref_dir} ]]; then 
+        echo "ERROR: Directory '${_ref_dir}' already exists"
+        exit 1
+    fi
 
 }
 
 set_base_branch() {
-	local -n _ref_base_branch=${1}
-	if git config --global init.defaultBranch ; then 
-		_ref_base_branch=$(git config --global init.defaultBranch)
-		echo "INFO: Using init.defaultBranch $_ref_base_branch as the base branch"
-	else
-		_ref_base_branch="main"
-		echo "INFO: Using git default branch: $_ref_base_branch as the base branch"
-	fi
+    local -n _ref_base_branch=${1}
+    if git config --global init.defaultBranch ; then 
+        _ref_base_branch=$(git config --global init.defaultBranch)
+        echo "INFO: Using init.defaultBranch $_ref_base_branch as the base branch"
+    else
+        _ref_base_branch="main"
+        echo "INFO: Using git default branch: $_ref_base_branch as the base branch"
+    fi
 
 }
 
+reset_workspace-n-branch() {
+    local _base_branch=
+    set_base_branch _base_branch
+    
+    git reset --hard origin/"${_base_branch}"
+    git clean -xfd 
+}
+
+git_local_config() {
+    # We are working in detached head - remove warning..
+    git config --local advice.detachedHead false
+}
+
 cmd_init() {
-	local _dir=
-	set_repo_dir _dir
-	
-	local _base_branch=
-	set_base_branch _base_branch
+    local _dir=
+    set_repo_dir _dir
+    
+    local _base_branch=
+    set_base_branch _base_branch
 
-	git init -b "${_base_branch}" "$_dir" 
-	cd "$_dir"
-	git remote add origin "$arg_remoteurl"
-	git config --local remote.origin.fetch "+refs/heads/${_base_branch}:refs/remotes/origin/${_base_branch}"
-	mkdir .gitartifact
-	touch .gitartifact/config .gitignore .gitattributes
-	{ 
-		echo "# Add git artifact repo description and instructions here" 
-		echo ""
-		echo ".. based on the tool: https://github.com/Praqma/git-artifact.git" 
-	} > README.md
-	git add .
-	git commit -m "First commit using command: git artifact repo $arg_remoteurl init"
-	git push origin "HEAD:refs/heads/${_base_branch}" -f
+    git init -b "${_base_branch}" "$_dir" 
+    cd "$_dir"
+    git_local_config
+    git remote add origin "$arg_remoteurl"
+    git config --local remote.origin.fetch "+refs/heads/${_base_branch}:refs/remotes/origin/${_base_branch}"
+    mkdir .gitartifact
+    touch .gitartifact/config .gitignore .gitattributes
+    { 
+        echo "# Add git artifact repo description and instructions here" 
+        echo ""
+        echo ".. based on the tool: https://github.com/Praqma/git-artifact.git" 
+    } > README.md
+    git add .
+    git commit -m "First commit of git artifact"
+    git push origin "HEAD:refs/heads/${_base_branch}" -f
 
-	if [[ -n ${arg_branch:-} ]]; then
-		echo "INFO: Init branch: ${arg_branch}"
-		git checkout -b "${arg_branch}"
-		git branch "${arg_branch}" --set-upstream-to "origin/${_base_branch}"
-	fi
+    if [[ -n ${arg_branch:-} ]]; then
+        echo "INFO: Init branch: ${arg_branch}"
+        git checkout -b "${arg_branch}"
+        git branch "${arg_branch}" --set-upstream-to "origin/${_base_branch}"
+    fi
 
-	git branch -v
+    git branch -v
 
-	echo "Ready to receive artifacts.. directory: $_dir"
+    echo "Ready to receive artifacts.. directory: $_dir"
 }
 
 cmd_clone() {
 
-	local _dir=
-	set_repo_dir _dir
-	
-	local _base_branch=
-	set_base_branch _base_branch
+    local _dir=
+    set_repo_dir _dir
+    
+    local _base_branch=
+    set_base_branch _base_branch
 
- 	git clone --single-branch --branch "$_base_branch" "$arg_remoteurl" "${_dir}"
-	cd "${_dir}"
+    git clone --single-branch --no-tags --branch "$_base_branch" "$arg_remoteurl" "${_dir}"
+    cd "${_dir}"
+    
+    git_local_config
 
-	if [[ -e ./setup.sh ]]; then
-		echo "Setup file exists - source it"   
-		# shellcheck source=/dev/null
-		. ./setup.sh
-	else
-		echo "INFO: Setup file (setup.sh) does not exit - skip"
-	fi
+    if [[ -e ./setup.sh ]]; then
+        echo "Setup file exists - source it"   
+        # shellcheck source=/dev/null
+        . ./setup.sh
+    else
+        echo "INFO: Setup file (setup.sh) does not exit - skip"
+    fi
 
-	if [[ -n ${arg_branch:-} ]]; then
-		echo "INFO: Init branch: ${arg_branch}"
-		git checkout -b "${arg_branch}"
-		git branch "${arg_branch}" --set-upstream-to "origin/${_base_branch}"
-	fi
+    if [[ -n ${arg_branch:-} ]]; then
+        echo "INFO: Init branch: ${arg_branch}"
+        git checkout -b "${arg_branch}"
+        git branch "${arg_branch}" --set-upstream-to "origin/${_base_branch}"
+    fi
 
-	git branch -v
+    git branch -v
 
-	echo "Ready to receive artifacts.."
+    echo "Ready to receive artifacts.."
 }
 
-cmd_add-new-artifact() {
-	echo "Add artifacts"
-	git add -A .
+cmd_add-n-tag() {
+    echo "Add artifacts"
+    git add -A .
 
-	echo "Commit the artifacts"
-	git commit -q -m "$arg_artifacttag"
+    echo "Commit the artifacts"
+    git commit -q -m "$arg_artifacttag"
 
-	echo "Tagging the artifacts: $arg_artifacttag"
-	git tag -a -m "$arg_artifacttag" "$arg_artifacttag"
+    echo "Tagging the artifacts: $arg_artifacttag"
+    git tag -a -m "$arg_artifacttag" "$arg_artifacttag"
+
+    reset_workspace-n-branch
 
 }
 
-cmd_push-artifact(){
-	local _current_branch
-	_current_branch=$(git branch --show-current)
+cmd_push(){
+    local _current_branch
+    _current_branch=$(git branch --show-current)
 
-	echo "Push the tag"
-	git push origin refs/tags/"${arg_artifacttag}":refs/tags/"${arg_artifacttag}" -f
+    if [[ -n "${arg_artifacttag:-}" ]]; then 
+        echo "Push the tag"
+        git push origin refs/tags/"${arg_artifacttag}":refs/tags/"${arg_artifacttag}"
+    fi
 
-	if [[ -n ${arg_branch:-} ]]; then
-		echo "Push the branch using force"
-		git push origin -f HEAD:refs/heads/"${_current_branch}" || {
-			echo "Force push failed.. try delete and push"
-			git push origin :refs/heads/"${_current_branch}"
-			git push origin HEAD:refs/heads/"${_current_branch}"
-		} || {
-			die "ERROR: Try to pushing with force / delete + push failed - Talk to your favorite DevOps geek to use this option"
-		}
-		git fetch origin +refs/heads/"${_current_branch}":refs/remotes/origin/"${_current_branch}"
-	fi
+    if [[ -n "${arg_branch:-}" ]]; then
+        echo "Push the branch using force"
+        git push origin -f HEAD:refs/heads/"${arg_branch}" || {
+            echo "Force push failed.. try delete and push"
+            git push origin :refs/heads/"${arg_branch}"
+            git push origin HEAD:refs/heads/"${arg_branch}"
+        } || {
+            die "ERROR: Try to pushing with force / delete + push failed - Talk to your favorite DevOps geek to use this option"
+        }
+        git fetch origin +refs/heads/"${arg_branch}":refs/remotes/origin/"${arg_branch}"
+    fi
 
-	git log -2 --oneline --decorate --graph
+    git log -2 --oneline --decorate --graph
 
-	echo "All good.. get back to clear state for next artifact..."
-	
-	local _base_branch=
-	set_base_branch _base_branch
-	
-	git reset --hard origin/"${_base_branch}"
-	git clean -xfd 
+    echo "All good.. get back to clear state for next artifact..."
+    
 }
+
 
 cmd_add-n-push() {
-	cmd_add-new-artifact
-	cmd_push-artifact
+    cmd_add-n-tag
+    cmd_push
+    reset_workspace-n-branch
+}
+
+cmd_fetch-co() {
+    if [ -n "${arg_artifacttag:-}" ]; then 
+        echo "INFO: fetching tag: ${arg_artifacttag}"
+        git fetch origin +refs/tags/"${arg_artifacttag}":refs/tags/"${arg_artifacttag}"
+        echo "INFO: checkout the tag: ${arg_artifacttag} in detached HEAD"
+        git checkout -f refs/tags/"${arg_artifacttag}"
+        [ -n "${arg_branch:-}" ] && echo "WARN: skipping the branch as tag is prio"
+    elif [ -n "${arg_branch:-}" ]; then 
+        echo "INFO: fetching branch: ${arg_branch}"
+        git fetch origin +refs/heads/"${arg_branch}":refs/heads/"${arg_branch}"
+        echo "INFO: swtich to branch: ${arg_branch}"
+        git switch "${arg_branch}"
+    fi
+    git log -1 --oneline --decorate
 }
 
 main () {
-	[[ ${debug:-} == true ]] && set -x
-	if [[ $# -eq 0 ]] ; then
-		set -- -h
-	fi
-	set_args="$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
-	# Set the arguments array for "real" flag parsing.
-	eval "$set_args"
-	# Begin "real" flag parsing.
-	arg_debug=
-	arg_artifacttag=
-	arg_branch=
-	arg_path=
-	while test $# -gt 1
-	do
-		opt="$1" # command
-		shift
+    [[ ${debug:-} == true ]] && set -x
+    if [[ $# -eq 0 ]] ; then
+        set -- -h
+    fi
+    set_args="$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
+    # Set the arguments array for "real" flag parsing.
+    eval "$set_args"
+    # Begin "real" flag parsing.
+    arg_debug=
+    arg_artifacttag=
+    arg_branch=
+    arg_path=
+    while test $# -gt 1
+    do
+        opt="$1" # command
+        shift
 
-		case "$opt" in
-		-q)
-			GIT_QUIET=1
-			;;
-		-d)
-			arg_debug=1
-			;;
-		--url|-u)
-			arg_remoteurl="$1"
-			shift
-			;;
-		--branch|-b)
-			arg_branch="$1"
-			shift
-			;;
-		--tag|-t)
-			arg_artifacttag="$1"
-			shift
-			;;
-		--path|-p)
-			arg_path="$1"
-			shift
-			;;
-		--)
-			;;
-		*)
-			echo "Unexpected option: $opt"
-			exit 1
-			;;
-		esac
-	done
-	arg_command=$1
-	shift
-	which git-sh-setup
-	case "$arg_command" in
-		init)	if test -z "${arg_remoteurl:-}"  ; then
-					git artifact -h
-					echo "ERROR: --url <url> required for $arg_command"
-					exit 1
-				fi
-				;;
-		clone) 	if test -z "${arg_remoteurl:-}"  ; then
-					git artifact -h
-					echo "ERROR: --url <url> required for $arg_command"
-					exit 1
-				fi
-				;;
-		add-n-push)
-				# shellcheck source=/dev/null
-				. git-sh-setup
-				require_work_tree
-				if test -z "${arg_artifacttag:-}"  ; then
-					git artifact -h
-					echo "ERROR: -t|--tag <tag> required for $arg_command"
-					exit 1
-				fi
-				;;
-		*)		printf  "Unknown command: %s\n\n" "$arg_command"
-				git artifact -h
-				exit 1
-				;;
-	esac
-	debug "command: {$arg_command}"
-	debug "quiet: {$GIT_QUIET}"
-	debug "opts: {$*}"
-	debug
+        case "$opt" in
+        -q)
+            GIT_QUIET=1
+            ;;
+        -d)
+            arg_debug=1
+            ;;
+        --url|-u)
+            arg_remoteurl="$1"
+            shift
+            ;;
+        --branch|-b)
+            arg_branch="$1"
+            shift
+            ;;
+        --tag|-t)
+            arg_artifacttag="$1"
+            shift
+            ;;
+        --path|-p)
+            arg_path="$1"
+            shift
+            ;;
+        --)
+            ;;
+        *)
+            echo "Unexpected option: $opt"
+            exit 1
+            ;;
+        esac
+    done
+    arg_command=$1
+    shift
+    which git-sh-setup
+    case "$arg_command" in
+        init)	if test -z "${arg_remoteurl:-}"  ; then
+                    git artifact -h
+                    echo "ERROR: --url <url> required for $arg_command"
+                    exit 1
+                fi
+                ;;
+        clone) 	if test -z "${arg_remoteurl:-}"  ; then
+                    git artifact -h
+                    echo "ERROR: --url <url> required for $arg_command"
+                    exit 1
+                fi
+                ;;
+        add-n-push)
+                # shellcheck source=/dev/null
+                . git-sh-setup
+                require_work_tree
+                if test -z "${arg_artifacttag:-}"  ; then
+                    git artifact -h
+                    echo "ERROR: -t|--tag <tag> required for $arg_command"
+                    exit 1
+                fi
+                ;;
+        add-n-tag)
+                # shellcheck source=/dev/null
+                . git-sh-setup
+                require_work_tree
+                if test -z "${arg_artifacttag:-}"  ; then
+                    git artifact -h
+                    echo "ERROR: -t|--tag <tag> required for $arg_command"
+                    exit 1
+                fi
+                ;;
+        fetch-co|push)
+                # shellcheck source=/dev/null
+                . git-sh-setup
+                require_work_tree
+                local option_found=false
+                if test -n "${arg_artifacttag:-}"  ; then
+                    option_found=true
+                fi
+                if test -n "${arg_branch:-}"  ; then
+                    option_found=true
+                fi
+                if [[ "${option_found}" == false ]] ; then
+                    git artifact -h
+                    echo "ERROR: at least one of -t|--tag <tag> or -b|--branch is required for $arg_command"
+                    exit 1
+                fi
+                ;;
+        *)		printf  "Unknown command: %s\n\n" "$arg_command"
+                git artifact -h
+                exit 1
+                ;;
+    esac
+    debug "command: {$arg_command}"
+    debug "quiet: {$GIT_QUIET}"
+    debug "opts: {$*}"
+    debug
 
-	set -euo pipefail
+    set -euo pipefail
 
-	"cmd_$arg_command" "$@"
+    "cmd_$arg_command" "$@"
 }
 
 
