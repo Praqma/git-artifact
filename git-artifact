@@ -29,22 +29,23 @@ OPTS_SPEC="\
 
 commands:
 
-init			inititialize a new repository
-clone			clone and existing repository from the remote
-add-n-tag		add and commit files to repo
+init            inititialize a new repository
+clone           clone and existing repository from the remote
+add-n-tag       add and commit files to repo abd leave workspace on tag/untouched
 push            push a tag
-add-n-push		add and commit files to repo and then push them
-fetch-co   		fetch tag from remote and checkout it out
+add-n-push      add and commit files to repo and then push them
+fetch-co   	    fetch tag from remote and checkout it out
+reset           reset workspace and branches
 --
-h,help        show the help
-q             quiet
-d             show debug messages
+h,help          show the help
+q               quiet
+d               show debug messages
 
  options for 'init' and 'clone'
 u,url=        the remote url
 p,path=       the optional path for init and clone 
 
- options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
+ options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co', 'reset'
 b,branch=     use branch for local changes and pushes
 
  options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
@@ -70,7 +71,6 @@ set_repo_dir() {
         echo "ERROR: Directory '${_ref_dir}' already exists"
         exit 1
     fi
-
 }
 
 set_base_branch() {
@@ -82,7 +82,6 @@ set_base_branch() {
         _ref_base_branch="main"
         echo "INFO: Using git default branch: $_ref_base_branch as the base branch"
     fi
-
 }
 
 reset_workspace-n-branch() {
@@ -173,9 +172,6 @@ cmd_add-n-tag() {
 
     echo "Tagging the artifacts: $arg_artifacttag"
     git tag -a -m "$arg_artifacttag" "$arg_artifacttag"
-
-    reset_workspace-n-branch
-
 }
 
 cmd_push(){
@@ -199,7 +195,7 @@ cmd_push(){
         git fetch origin +refs/heads/"${arg_branch}":refs/remotes/origin/"${arg_branch}"
     fi
 
-    git log -2 --oneline --decorate --graph
+    git log -2 --oneline --decorate --graph --all
 
     echo "All good.. get back to clear state for next artifact..."
     
@@ -210,6 +206,22 @@ cmd_add-n-push() {
     cmd_add-n-tag
     cmd_push
     reset_workspace-n-branch
+}
+
+cmd_reset() {
+    local _current_branch
+    _current_branch=$(git branch --show-current)
+
+    local _base_branch=
+    set_base_branch _base_branch
+
+    reset_workspace-n-branch
+    
+    if [[ -n ${_current_branch:-} ]]; then
+        echo "INFO:  branch: ${_current_branch}"
+        git switch "${_current_branch}"
+        git branch "${_current_branch}" --set-upstream-to "origin/${_base_branch}"
+    fi
 }
 
 cmd_fetch-co() {
@@ -327,6 +339,16 @@ main () {
                 if [[ "${option_found}" == false ]] ; then
                     git artifact -h
                     echo "ERROR: at least one of -t|--tag <tag> or -b|--branch is required for $arg_command"
+                    exit 1
+                fi
+                ;;
+        reset)
+                # shellcheck source=/dev/null
+                . git-sh-setup
+                require_work_tree
+                if test -n "${arg_branch:-}"  ; then
+                    git artifact -h
+                    echo "ERROR: -b|--branch is required for $arg_command"
                     exit 1
                 fi
                 ;;

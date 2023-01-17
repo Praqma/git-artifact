@@ -24,6 +24,7 @@ function generate_base_repo() {
     touch test2.txt
     git artifact add-n-tag -t v2.0
     git artifact push -t v2.0
+    git artifact reset
     cd ..
 }
 
@@ -32,7 +33,7 @@ cd $test
 generate_base_repo
 git -C $local_tester_repo log --graph --all --oneline --decorate --format="%d %s" > git-test.log
 diff git-test.log git-reference.log || {
-    echo "ERROR: Test failed"
+    echo "ERROR: Test $test failed"
     exit 1
 }
 cd $root_folder
@@ -47,22 +48,37 @@ git artifact fetch-co -t v2.0
 git log --graph --all --oneline --decorate --format="%d %s" > ../git-test.log
 cd ..
 diff git-test.log git-reference.log || {
-    echo "ERROR: Test failed"
+    echo "ERROR: Test $test failed"
     exit 1
 }
 cd $root_folder
 
 export test="3"
-cd $test || {
-    mkdir $test
-    cd $test
-}
-generate_base_repo
+cd $test
+generate_base_repo "latest"
 git artifact clone --url=$(pwd)/$remote_tester_repo --path $clone_tester_repo
-git -C $clone_tester_repo log --graph --all --oneline --decorate --format="%d %s" > ../git-test.log
-cd ..
+git -C $clone_tester_repo log --graph --all --oneline --decorate --format="%d %s" > git-test.log
 diff git-test.log git-reference.log || {
-    echo "ERROR: Test failed"
+    echo "ERROR: Test $test failed"
     exit 1
 }
+cd $root_folder
+
+export test="4"
+cd $test
+generate_base_repo
+git artifact clone --url=$(pwd)/$remote_tester_repo -b latest --path $clone_tester_repo
+cd $clone_tester_repo
+touch test$test.txt 
+git artifact add-n-push -t v${test}.0 -b latest
+touch test$test.1.txt 
+git artifact add-n-push -t v${test}.1 -b latest
+git log --graph --all --oneline --decorate --format="%d %s" > ../git-test.log
+cd ..
+diff git-test.log git-reference.log || {
+    echo "ERROR: Test $test failed"
+    exit 1
+}
+echo "ERROR: Test $test pass"
+
 cd $root_folder
