@@ -13,8 +13,36 @@ local_tester_repo=.local
 remote_tester_repo=.remote
 clone_tester_repo=.clone
 
+function testcase_header() {
+    [[ ${verbose:-} == true ]] || return 0
+    echo
+    echo "--------------------------------------------------------------------------------"
+    echo " Testcase begin: ${test} : $testcase_synopsis"
+    echo "--------------------------------------------------------------------------------"
+}
+
+
+function eval_testcase() {
+    # expect to be in repo to test against
+    git log --graph --all --oneline --decorate --format="%d %s" > "${root_folder}/${test}/git-test.log"
+    cd "${root_folder}/${test}"
+    if diff git-test.log git-reference.log ; then 
+        if [[ ${verbose:-} == true ]] ; then 
+            cat git-test.log
+            echo "INFO: Test $test : OK"
+            echo
+        else
+            echo "INFO: Test $test : OK : ${testcase_synopsis}"
+        fi
+    else
+        echo "ERROR: Test $test failed: ${testcase_synopsis}"
+        exit 1
+    fi
+    cd "${root_folder}"
+}
+
 function generate_base_repo() {
-    rm -rf $local_tester_repo/ $remote_tester_repo/ $clone_tester_repo/
+    rm -rf "$local_tester_repo/" "$remote_tester_repo/" "$clone_tester_repo/"
     git init --bare $remote_tester_repo
     git artifact init --url=$(pwd)/$remote_tester_repo --path $local_tester_repo
     cd $local_tester_repo
@@ -32,21 +60,18 @@ echo  "Running testcases; You can find run details for each test in <test>/run.l
 echo
 
 export test="1"
-testcase_synopsis="base-repo ; clone; "
+testcase_synopsis="base-repo ; clone"
+testcase_header
 {
     cd $test
     generate_base_repo
-    git -C $local_tester_repo log --graph --all --oneline --decorate --format="%d %s" > git-test.log
+    cd $local_tester_repo
 } > ${test}/run.log 2>&1 
-diff git-test.log git-reference.log || {
-    echo "ERROR: Test $test failed"
-    exit 1
-}
-echo "INFO: Test $test pass: ${testcase_synopsis}"
-cd $root_folder
+eval_testcase
 
 export test="2"
 testcase_synopsis="base-repo ; clone; fetch-co : the repo has two tags and the latest is checked out"
+testcase_header
 {
     cd $test
     generate_base_repo
@@ -55,32 +80,22 @@ testcase_synopsis="base-repo ; clone; fetch-co : the repo has two tags and the l
     git artifact fetch-co -t v1.0
     git artifact fetch-co -t v2.0
 } > ${test}/run.log 2>&1 
-git log --graph --all --oneline --decorate --format="%d %s" > ../git-test.log
-cd ..
-diff git-test.log git-reference.log || {
-    echo "ERROR: Test $test failed"
-    exit 1
-}
-echo "INFO: Test $test pass: ${testcase_synopsis}"
-cd $root_folder
+eval_testcase
 
 export test="3"
 testcase_synopsis="base-repo ; clone - gives a repo without any artifacts"
+testcase_header
 {
     cd $test
     generate_base_repo "latest"
     git artifact clone --url=$(pwd)/$remote_tester_repo --path $clone_tester_repo
-    git -C $clone_tester_repo log --graph --all --oneline --decorate --format="%d %s" > git-test.log
+    cd  $clone_tester_repo 
 } > ${test}/run.log 2>&1 
-diff git-test.log git-reference.log || {
-    echo "ERROR: Test $test failed"
-    exit 1
-}
-echo "INFO: Test $test pass: ${testcase_synopsis}"
-cd $root_folder
+eval_testcase
 
 test="4"
 testcase_synopsis="base-repo ; clone; add-n-push with branch"
+testcase_header
 { 
     cd $test
     generate_base_repo
@@ -91,17 +106,11 @@ testcase_synopsis="base-repo ; clone; add-n-push with branch"
     touch test$test.1.txt 
     git artifact add-n-push -t v${test}.1 -b latest
 } > ${test}/run.log 2>&1 
-git log --graph --all --oneline --decorate --format="%d %s" > ../git-test.log
-cd ..
-diff git-test.log git-reference.log || {
-    echo "ERROR: Test $test failed"
-    exit 1
-}
-echo "INFO: Test $test pass: ${testcase_synopsis}"
-cd $root_folder
+eval_testcase
 
 test="5"
 testcase_synopsis="base-repo ; clone; fetch-co-latest pattern"
+testcase_header
 { 
     cd $test
     generate_base_repo
@@ -109,22 +118,24 @@ testcase_synopsis="base-repo ; clone; fetch-co-latest pattern"
     cd $clone_tester_repo
     git artifact fetch-co-latest -r 'v[0-9]+.[0-9]+'
     git artifact reset
+    
+    cd ../$local_tester_repo
     touch test$test.txt 
     git artifact add-n-push -t v${test}.0
-    git tag -d v${test}.0
+    sleep 1
+    
+    cd ../$clone_tester_repo
     git artifact fetch-co-latest -r 'v[0-9]+.[0-9]+'
     git artifact reset
+
+    cd ../$local_tester_repo
     touch test$test.1.txt 
     git artifact add-n-push -t v${test}.1
     sleep 1
-    git tag -d v${test}.1
+
+    cd ../$clone_tester_repo
     git artifact fetch-co-latest --regex 'v[0-9]+.[0-9]+'
+
 } > ${test}/run.log 2>&1 || cat ${test}/run.log
-git log --graph --all --oneline --decorate --format="%d %s" > ../git-test.log
-cd ..
-diff git-test.log git-reference.log || {
-    echo "ERROR: Test $test failed: ${testcase_synopsis}"
-    exit 1
-}
-echo "INFO: Test $test pass: ${testcase_synopsis}"
-cd $root_folder
+eval_testcase
+
