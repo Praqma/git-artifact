@@ -127,6 +127,7 @@ testcase_header
     cd ../$clone_tester_repo
     git artifact fetch-co-latest -r 'v[0-9]+.[0-9]+'
     git artifact reset
+    sleep 1
 
     cd ../$local_tester_repo
     touch test$test.1.txt 
@@ -139,3 +140,17 @@ testcase_header
 } > ${test}/run.log 2>&1 || cat ${test}/run.log
 eval_testcase
 
+test="6"
+testcase_synopsis="base-repo ; clone; fetch-tags"
+testcase_header
+{ 
+    cd $test
+    generate_base_repo
+    git artifact clone --url=$(pwd)/$remote_tester_repo -b latest --path $clone_tester_repo
+    cd $clone_tester_repo
+    git artifact fetch-co --tag v1.0
+    sha1=$(git rev-parse HEAD)
+    git tag -d v1.0
+    git artifact fetch-tags --sha1 "$sha1"
+} > ${test}/run.log 2>&1 || cat ${test}/run.log
+eval_testcase
