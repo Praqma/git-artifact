@@ -26,7 +26,7 @@ function eval_testcase() {
     # expect to be in repo to test against
     git log --graph --all --oneline --decorate --format="%d %s" > "${root_folder}/${test}/git-test.log"
     cd "${root_folder}/${test}"
-    if diff git-test.log git-reference.log ; then 
+    if diff -Z git-test.log git-reference.log ; then 
         if [[ ${verbose:-} == true ]] ; then 
             cat git-test.log
             echo "INFO: Test $test : OK"
