@@ -26,7 +26,7 @@
 We are using the full freedom and powers of Git, so it is required to have delete/force push permissions to branches in order move branch heads to new artifacts that is not fast forwards.
 
 ### Advises
-Define a tag- and branch-name strategy for each "layer" of git-artifacts. This simplifies appending to old artifacts and allows keeping several artifacts in the same repository. With only one artiface, the scheme could be `unsigned/latest` and `signed/latest` for branches. Tags could use `1.1.8928/unsigned`, `1.1.8928/signed`, `1.1.8928/targettest-passed`, `1.1.8928/targettest-failed`, `1.1.8928/regression-passed` etc. Adding an artifact name would allow more than one artifact in the repository.
+Define a tag- and branch-name strategy for each "layer" of git-artifacts. This simplifies appending to old artifacts and allows keeping several artifacts in the same repository. With only one artifact, the scheme could be `unsigned/latest` and `signed/latest` for branches. Tags could use `1.1.8928/unsigned`, `1.1.8928/signed`, `1.1.8928/targettest-passed`, `1.1.8928/targettest-failed`, `1.1.8928/regression-passed` etc. Adding an artifact name would allow more than one artifact in the repository.
 
 ## Initialize
 ```
