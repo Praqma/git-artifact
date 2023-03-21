@@ -53,6 +53,7 @@ function generate_base_repo() {
     git artifact add-n-tag -t v2.0
     git artifact push -t v2.0
     git artifact reset
+    sleep 1
     cd ..
 }
 
@@ -114,6 +115,7 @@ testcase_header
 { 
     cd $test
     generate_base_repo
+    sleep 1
     git artifact clone --url=$(pwd)/$remote_tester_repo --path $clone_tester_repo
     cd $clone_tester_repo
     git artifact fetch-co-latest -r 'v[0-9]+.[0-9]+'
