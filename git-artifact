@@ -84,20 +84,45 @@ set_repo_dir() {
 
 set_base_branch() {
     local -n _ref_base_branch=${1}
-    if git config --global init.defaultBranch ; then 
-        _ref_base_branch=$(git config --global init.defaultBranch)
-        echo "INFO: Using init.defaultBranch $_ref_base_branch as the base branch"
+    if [[ -n ${arg_branch:-} ]]; then
+        _ref_base_branch="${arg_branch}"
     else
-        _ref_base_branch="main"
-        echo "INFO: Using git default branch: $_ref_base_branch as the base branch"
+        if git config --global init.defaultBranch ; then 
+            _ref_base_branch=$(git config --global init.defaultBranch)
+            echo "INFO: Using init.defaultBranch $_ref_base_branch as the base branch"
+        else
+            _ref_base_branch="main"
+            echo "INFO: Using git default branch: $_ref_base_branch as the base branch"
+        fi
+    fi
+}
+
+set_remote_default_branch() {
+    local -n _ref_remote_default_branch=${1}
+    
+    echo "INFO: Getting remote default branch:"
+    if [[ -z ${arg_remoteurl:-} ]]; then 
+        arg_remoteurl="origin"
+    fi
+    _ref_remote_default_branch=$(git ls-remote --symref "$arg_remoteurl" HEAD | grep -E 'ref:[[:space:]].+[[:space:]]HEAD' | cut -f 1 | cut -d '/' -f 3-)
+    
+    if [[ -n ${_ref_remote_default_branch:-} ]]; then 
+	    echo "Found: ${_ref_remote_default_branch}"
+    else
+        local _base_branch=
+        set_base_branch _base_branch
+
+        echo "Not Found - defaults to: ${_ref_remote_default_branch}"
+            _ref_remote_default_branch=${_base_branch}
     fi
 }
 
 reset_workspace-n-branch() {
-    local _base_branch=
-    set_base_branch _base_branch
+    local _default_remote_branch=
+    set_remote_default_branch _default_remote_branch
     
-    git reset --hard origin/"${_base_branch}"
+    git fetch origin ${_default_remote_branch}
+    git reset --hard origin/"${_default_remote_branch}"
     git clean -xfd 
 }
 
@@ -113,8 +138,9 @@ cmd_init() {
     local _base_branch=
     set_base_branch _base_branch
 
-    git init -b "${_base_branch}" "$_dir" 
+    git init  "$_dir" 
     cd "$_dir"
+    git checkout -B "${_base_branch}" 
     git_local_config
     git remote add origin "$arg_remoteurl"
     git config --local remote.origin.fetch "+refs/heads/${_base_branch}:refs/remotes/origin/${_base_branch}"
@@ -131,7 +157,7 @@ cmd_init() {
 
     if [[ -n ${arg_branch:-} ]]; then
         echo "INFO: Init branch: ${arg_branch}"
-        git checkout -b "${arg_branch}"
+        git switch "${arg_branch}"
         git branch "${arg_branch}" --set-upstream-to "origin/${_base_branch}"
     fi
 
@@ -145,10 +171,10 @@ cmd_clone() {
     local _dir=
     set_repo_dir _dir
     
-    local _base_branch=
-    set_base_branch _base_branch
+    local _remote_default_branch=
+    set_remote_default_branch _remote_default_branch
 
-    git clone --single-branch --no-tags --branch "$_base_branch" "$arg_remoteurl" "${_dir}"
+    git clone --single-branch --no-tags --branch "${_remote_default_branch}" "${arg_remoteurl}" "${_dir}"
     cd "${_dir}"
     
     git_local_config
@@ -164,7 +190,7 @@ cmd_clone() {
     if [[ -n ${arg_branch:-} ]]; then
         echo "INFO: Init branch: ${arg_branch}"
         git checkout -b "${arg_branch}"
-        git branch "${arg_branch}" --set-upstream-to "origin/${_base_branch}"
+        git branch "${arg_branch}" --set-upstream-to "origin/${_remote_default_branch}"
     fi
 
     git branch -v
@@ -221,15 +247,15 @@ cmd_reset() {
     local _current_branch
     _current_branch=$(git branch --show-current)
 
-    local _base_branch=
-    set_base_branch _base_branch
+    local _remote_default_branch=
+    set_remote_default_branch _remote_default_branch
 
     reset_workspace-n-branch
     
     if [[ -n ${_current_branch:-} ]]; then
         echo "INFO:  branch: ${_current_branch}"
         git switch "${_current_branch}"
-        git branch "${_current_branch}" --set-upstream-to "origin/${_base_branch}"
+        git branch "${_current_branch}" --set-upstream-to "origin/${_remote_default_branch}"
     fi
 }
 

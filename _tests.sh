@@ -44,7 +44,8 @@ function eval_testcase() {
 function generate_base_repo() {
     rm -rf "$local_tester_repo/" "$remote_tester_repo/" "$clone_tester_repo/"
     git init --bare $remote_tester_repo
-    git artifact init --url=$(pwd)/$remote_tester_repo --path $local_tester_repo
+    git -C $remote_tester_repo symbolic-ref HEAD refs/heads/${default_branch:-main}
+    git artifact init --url=$(pwd)/$remote_tester_repo --path $local_tester_repo -b ${default_branch:-main} 
     cd $local_tester_repo
     touch test.txt
     git artifact add-n-push -t v1.0
@@ -61,7 +62,7 @@ echo  "Running testcases; You can find run details for each test in <test>/run.l
 echo
 
 export test="1"
-testcase_synopsis="base-repo ; clone"
+testcase_synopsis="base-repo default-branch; clone"
 testcase_header
 {
     cd $test
@@ -69,6 +70,20 @@ testcase_header
     cd $local_tester_repo
 } > ${test}/run.log 2>&1 
 eval_testcase
+
+export test="1.1"
+testcase_synopsis="base-repo master-branch; clone"
+testcase_header
+{
+    cd $test
+    export default_branch=master
+    generate_base_repo
+    cd $local_tester_repo
+    unset default_branch
+} > ${test}/run.log 2>&1 
+eval_testcase
+
+
 
 export test="2"
 testcase_synopsis="base-repo ; clone; fetch-co : the repo has two tags and the latest is checked out"
@@ -156,3 +171,5 @@ testcase_header
     git artifact fetch-tags --sha1 "$sha1"
 } > ${test}/run.log 2>&1 || cat ${test}/run.log
 eval_testcase
+
+
