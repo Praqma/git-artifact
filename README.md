@@ -21,49 +21,27 @@
 - git understand the content in workspace and git clean does not remove artifacts in contrast to zip'ed artifacts
 
 ## The concept
+Git normally stacks the history hence you cannot delete commit in the middle of the history. `git-artifact` make a "horizontal" history - i.e the commits are not stacked on top of each other, but next to each other. The only stacked commit are only when you append to an artifact and give it additional tag name stated the new layer of artifacts.
 
-## Prerequisites 
-We are using the full freedom and powers of Git, so it is required to have delete/force push permissions to branches in order move branch heads to new artifacts that is not fast forwards.
+The history is basically like this 
+```
+          [0.2/test] 
+             |
+[0.1/bin] [0.2/bin]  [0.3/bin]
+|           /          / 
+<main>
+```
+
+### Prerequisites 
+The tool uses tags hence the user need to tags push rights. It is also beneficial to have delete tag rights to clean old artifacts. It can also run in branch mode so it for example maintains a `latest` branch which needs force push / delete rights. The concept is similar to docker concept of `<image>/latest` 
 
 ### Advises
-Define a tag- and branch-name strategy for each "layer" of git-artifacts. This simplifies appending to old artifacts and allows keeping several artifacts in the same repository. With only one artifact, the scheme could be `unsigned/latest` and `signed/latest` for branches. Tags could use `1.1.8928/unsigned`, `1.1.8928/signed`, `1.1.8928/targettest-passed`, `1.1.8928/targettest-failed`, `1.1.8928/regression-passed` etc. Adding an artifact name would allow more than one artifact in the repository.
 
 ## Initialize
-```
-git init
-touch .gitignore && git add .gitignore
-touch .gitattributes && git add .gitattributes
-git commit -m "Initialize the git artifact repository"
-git remote add origin <artifact-url>
-git push origin master/main
-```
+TODO:
 
-## Adding a new artifact to the artifact-repo
-```
-git clone -b master -depth 1 <artifact-url>
-:git add $file: || git add .
-git commit -m "$message"
-git tag -a -m "$message" $tag
-git push origin $tag:refs/tags/$tag
-git push origin latest --force
-```
-  
-## Consume the latest git-artifact
-```
-git clone -b latest -depth 1 <repo-url>
-```
-
-## Appending to latest artifact
-```
-git clone -b latest -depth 1 <repo-url>
-:repeat: git add $file || git add .
-git commit -m "$append_message"
-git tag -a -m "$append_message" $append_tag
-git push origin $append_tag:refs/tags/$append_tag
-git push origin latest_append --force
-```
-  
 ## Searching
+TODO:
 
 ### git ls-remote
 ```
