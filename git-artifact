@@ -301,7 +301,7 @@ cmd_find-latest() {
 cmd_fetch-co-latest() {
     latest_tag=""
     find-latest latest_tag
-    git fetch origin +$latest_tag:$latest_tag
+    git fetch origin +refs/tags/$latest_tag:refs/tags/$latest_tag
     git checkout $latest_tag
 }
 
