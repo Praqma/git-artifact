@@ -21,10 +21,13 @@ function testcase_header() {
     echo "--------------------------------------------------------------------------------"
 }
 
-
 function eval_testcase() {
     # expect to be in repo to test against
-    git log --graph --all --oneline --decorate --format="%d %s" > "${root_folder}/${test}/git-test.log"
+    if [[ -s "${root_folder}/${test}/git-test.log" ]]; then 
+        echo "INFO: ${root_folder}/${test}/git-test.log is not empty - use it"
+    else
+        git log --graph --all --oneline --decorate --format="%d %s" > "${root_folder}/${test}/git-test.log"
+    fi
     cd "${root_folder}/${test}"
     if diff -Z git-test.log git-reference.log ; then 
         if [[ ${verbose:-} == true ]] ; then 
@@ -43,7 +46,7 @@ function eval_testcase() {
 
 function generate_base_repo() {
     rm -rf "$local_tester_repo/" "$remote_tester_repo/" "$clone_tester_repo/"
-    git init --bare $remote_tester_repo
+    git init --bare -b ${default_branch:-main} $remote_tester_repo 
     git -C $remote_tester_repo symbolic-ref HEAD refs/heads/${default_branch:-main}
     git artifact init --url=$(pwd)/$remote_tester_repo --path $local_tester_repo -b ${default_branch:-main} 
     cd $local_tester_repo
@@ -133,7 +136,7 @@ testcase_header
     sleep 1
     git artifact clone --url=$(pwd)/$remote_tester_repo --path $clone_tester_repo
     cd $clone_tester_repo
-    git artifact fetch-co-latest -r 'v[0-9]+.[0-9]+'
+    git artifact fetch-co-latest -r 'v*.*'
     git artifact reset
     
     cd ../$local_tester_repo
@@ -142,7 +145,7 @@ testcase_header
     sleep 1
     
     cd ../$clone_tester_repo
-    git artifact fetch-co-latest -r 'v[0-9]+.[0-9]+'
+    git artifact fetch-co-latest -r 'v*.*'
     git artifact reset
     sleep 1
 
@@ -152,9 +155,23 @@ testcase_header
     sleep 1
 
     cd ../$clone_tester_repo
-    git artifact fetch-co-latest --regex 'v[0-9]+.[0-9]+'
+    git artifact fetch-co-latest --regex 'v*.*'
 
-} > ${test}/run.log 2>&1 || cat ${test}/run.log
+} > ${test}/run.log 2>&1 || { pwd && cat ../run.log; }
+eval_testcase
+
+test="5.1"
+testcase_synopsis="base-repo ; clone; find-latest pattern"
+testcase_header
+{ 
+    cd $test
+    generate_base_repo
+    sleep 1
+    git artifact clone --url=$(pwd)/$remote_tester_repo --path $clone_tester_repo
+    cd $clone_tester_repo
+    git ls-remote origin --tags
+    git artifact find-latest -r 'v*.*' > ${root_folder}/${test}/git-test.log
+} > ${root_folder}/${test}/run.log 2>&1 || { pwd && cat ${root_folder}/${test}/run.log; }
 eval_testcase
 
 test="6"
@@ -169,7 +186,5 @@ testcase_header
     sha1=$(git rev-parse HEAD)
     git tag -d v1.0
     git artifact fetch-tags --sha1 "$sha1"
-} > ${test}/run.log 2>&1 || cat ${test}/run.log
+} > ${test}/run.log 2>&1 || cat ../${test}/run.log
 eval_testcase
-
-
