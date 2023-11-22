@@ -1,27 +1,36 @@
 # git-artifact
 
-## Why
+## The rational for storing artifacts in git
+I have, over the years in the embbeded enterprise industry, constantly come across many scenarios where zipping, downloading and unzipping generic dependencies and maintaining workspace
+has slowed down turn around time for developers and CI system. Git is a fantastic zipper it self and you get integrity of workspaces for free.
 
-### Overall
-- no new tools involved ( artifact management system )
-- Same credentials scheme as your source code ( even ssh )
-- easy to trigger in pipelines based on tags or branch updates
-- no need for release drives/shares which lack features for tracing and maintenance
-- Git's normal garbage collection takes care of the details for cleaning
+Git has always been mentioned to be bad for storing artifacts due to the block chain technology and distrubuted architecture. Git-artifact make sure this problem is handled by storing commits "horisontally" using tags rather than the default "stacked" way. It gives a few advantages compared to standard usage of git: 
+- Firstly; You can garbage collect intermidiate artifacts by just deleting the tag
+- Secondly; You only fetch what you need - even without using shallow. 
 
-### Producer
-- Add the git-artifact repo as submodule. Let the make system output to the git-artifact repo directory ready to commit
+### CI/CD integration
+Triggering of new builds or tests are done the normal way as known from triggering your pipelines of source code - push or pull - simple..
+
+### Save money
+You can save additional license and maintainance cost and/or coqnative load by maintaining and using an additional system for artifacts. You can handle it with your current git repository manager.
+
+### Producer of artifacts
+A few remarks, aspects and thoughts when storing the artifacts 
 - easy to append artifacts as stages evolves with more artifacts
-- no need to zip before upload nor unzip after download
+- no need to zip before upload - just commit as the artifact should be used.
 - easy to add information, environment, tools and git source sha1 in the artifact for traceability and later reproduction
+- add the source code as a dependency to the artifact. It will then be easy
 
-### Consumer
-- easy to use a submodule for other repo as a dependency
-- even a consumer can be a producer adding further artifacts on top the consumed commit with a new commit and tag
-- git understand the content in workspace and git clean does not remove artifacts in contrast to zip'ed artifacts
+### Consumer of the artifacts
+A few remarks, aspects and thoughts when retrieving the artifacts 
+- The consumer do not need anything than standard git
+- Pipelines just consumes the artifact unzip and ready to use as they were produced
+- Use your favorit git dependency system like submodules(this is the correct way for submodule usage btw ), repo tool or ..
+- Even a consumer can be a producer by adding further artifacts on top the consumed commit with a new commit and tag
+- git understand the content in workspace and git clean does not remove artifacts in contrast to downloaded artifacts
 
-## The concept
-Git normally stacks the history hence you cannot delete commit in the middle of the history. `git-artifact` make a "horizontal" history - i.e the commits are not stacked on top of each other, but next to each other. The only stacked commit are only when you append to an artifact and give it additional tag name stated the new layer of artifacts.
+## How is it done
+Git normally stacks the history hence you cannot delete commit in the middle of the history. `git-artifact` make a "horizontal" history - i.e the commits are not stacked on top of each other, but next to each other.
 
 The history is basically like this 
 ```
@@ -31,38 +40,92 @@ The history is basically like this
 |           /          / 
 <main>
 ```
+`git-artifacts` has all the functions available that make the above history straight for and natural workflow. 
 
 ### Prerequisites 
-The tool uses tags hence the user need to tags push rights. It is also beneficial to have delete tag rights to clean old artifacts. It can also run in branch mode so it for example maintains a `latest` branch which needs force push / delete rights. The concept is similar to docker concept of `<image>/latest` 
+The tool uses tags hence the producer need to tag push-rights. It is also beneficial to have tag delete-rights to clean old artifacts. 
 
-### Advises
+It can also run in branch mode. It can  maintain a `latest` branch which needs to be force pushed or delete + push rights. The concept is similar to docker concept of `<image>/latest`. It is only important if you want to use tracking branches without using `git-artifact`. It could be in context of `submodules` or `repo manifests`.
 
-## Initialize
-TODO:
+### Integrations
+#### CI Systems
+CI system's git integrations can usually be configured to trigger on glob-pattern. You can also use a branch to track the "latest" which make it easier for some systems.
 
-## Searching
-TODO:
+#### Git submdules, Android repo tool
+Similar to the CI systems, the submodules and repo tool have features to track branches which makes it easy "just" get the latest. In releases, it is though recommended to use specific version/sha1, so it is reproducable. 
+Alternatively you can use `git-artifact` to find  the `latest` of a given a regular expression.
 
-### git ls-remote
+### Installation
+Download or clone this repo (`git-artifact`) and add make it available in the PATH. Given that `git-artifact` is in the PATH, then `git` can use it as an command like `git artifact`. It is now integrated with git and git is extended.
+
+## Getting started
+First you need to create a repository in your git repository manager. You can either choose to initialize the repo, but `git artifact` also have command to do that and it states that this repository is "special" repository containing git artifacts.
+
+### Initialize the repository
+Let us now initialized a repo:
 ```
-git ls-remote origin --tags | grep <pattern>
+git artifact init --url=<remote_url> --path my-git-artifact-path
 ```
-  
-### git log
+
+### Add the artifact
+The repository and path initialize above ready to use. Copy the artifacts to your path in the folder structure the "constumer" desire it. There is not reason to tar or zip it. Git will handling this for optimized storage and easiness.
+
 ```
-git log --grep <pattern>
+cd my-git-artifact-path
+cp -rf <build-dir>/my.lib /include .
+git artifact add-n-push -t v1.0
 ```
+The artifact v1.0 is now commited, pushed _and_ importantly - the workspace is set back to the default branch of the remote repository. It is now ready to make a new artifact based on the default branched
+
+## Finding and getting artifacts
+Firstly clone the git artifact repository. Note that you only clone and get the default branch
+```
+git artifact clone --url=<remote> --path my-git-artifact-path
+cd my-git-artifact-path
+````
+
+### Find the latest using pattern
+```
+git artifact find-latest -r 'v*.*'
+```
+### Download and checkout the latest
+```
+git artifact fetch-co-latest --regex 'v*.*'
+```
+
+## Appending to an artifact
+You can append to an artifact with advantage. Let say you create a library and you run a lot of tests in a later stage and the result is a test report. You can then just add that on top of the library tag.  
+
+- Download and checkout the artifact ( see above )
+- Add a new artifact ( see above )
+
+You should of course consider this in your naming convension. Consider something like this:
+```
+vX.Y.Z/release-note
+vX.Y.Z/test
+vX.Y.Z/src
+vX.Y.Z/lib
+```
+
+### Add the source code that was used to build the artifact
+The source code in many companies and open-source projects are free to view, debug and edit. You can make it easy accessable by adding the source code as submodule and sha1 in to the artifact history. It sounds odd, but it gives the developers easy access to checkout the correct version that was used to build artifact.
+
+This way it actually possible to create a full block-chain of everything that was involved in producing a product.
+
+## Add information to the annotated tag
+TODO: option for file or string
 
 ## Pruning / cleaning artifacts
-### using `git log` and get tags with a certain pattern 
-### 
+TODO: based on count.. 
+
+
 
 ## Advanced
 
-### Cloning with filter
-- only some repo managers can do this
-
 ### LFS
+`git artifact` work great out of the box without any extensions like LFS. It can though still be interesting to commit an `git-lfs` configuration to the default branch. 
+- Artifact sets that can many common binary/large files from version to version will then be able to detect that it already have have this file in the LFS storage and do not have to fetch/push it again. 
+- You can download all tags without checkout and then you can search for meta-data in the annotated tags without suffering large data transfer and storage in order to clean.
 
-### Dual artifactory and git-artifact usages
-- set your LFS store to be Artifactory and then can normal artifacts via upload and LFS have traceability
+### Promotions
+There are few ways to you can do promotions. 
