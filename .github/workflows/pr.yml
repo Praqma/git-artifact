@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+    test-git-native:
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+
+        - name: Run tests git-native
+          run: | 
+            git config --global user.email "git-artifact@github.com"
+            git config --global user.name "Git Artifact"
+            git --version
+            verbose=true bash _tests.sh || {
+                exit_code=$?
+                find . -name run.log 
+                find . -name run.log | xargs -I % cat % 
+                exit $exit_code
+            }
+    test-git-alpine-latest:      
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Run tests
+          run: | 
+            set -eux
+            git_version=latest
+            docker build --build-arg ALPINE_GIT_DOCKER_VERSION=${git_version} -t git-artifact:latest .
+            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:latest --version
+            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:latest artifact-tests || {
+                exit_code=$?
+                find . -name run.log 
+                find . -name run.log | xargs -I % cat % 
+                exit $exit_code
+            }
+          
+    test-git-alpine-v2-36-2:      
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Run tests
+          run: | 
+            set -eux
+            git_version=v2.36.2
+            docker build --build-arg ALPINE_GIT_DOCKER_VERSION=${git_version} -t git-artifact:${git_version} .
+            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:${git_version} --version
+            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:${git_version} artifact-tests || {
+                exit_code=$?
+                find . -name run.log 
+                find . -name run.log | xargs -I % cat % 
+                exit $exit_code
+            }
+
+    test-git-alpine-v2-26-2:      
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Run tests
+          run: | 
+            set -eux
+            git_version=v2.26.2
+            docker build --build-arg ALPINE_GIT_DOCKER_VERSION=${git_version} -t git-artifact:${git_version} .
+            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:${git_version} --version
+            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:${git_version} artifact-tests || {
+                exit_code=$?
+                find . -name run.log 
+                find . -name run.log | xargs -I % cat % 
+                exit $exit_code
+            }

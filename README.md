@@ -47,14 +47,6 @@ The tool uses tags hence the producer need to tag push-rights. It is also benefi
 
 It can also run in branch mode. It can  maintain a `latest` branch which needs to be force pushed or delete + push rights. The concept is similar to docker concept of `<image>/latest`. It is only important if you want to use tracking branches without using `git-artifact`. It could be in context of `submodules` or `repo manifests`.
 
-### Integrations
-#### CI Systems
-CI system's git integrations can usually be configured to trigger on glob-pattern. You can also use a branch to track the "latest" which make it easier for some systems.
-
-#### Git submdules, Android repo tool
-Similar to the CI systems, the submodules and repo tool have features to track branches which makes it easy "just" get the latest. In releases, it is though recommended to use specific version/sha1, so it is reproducable. 
-Alternatively you can use `git-artifact` to find  the `latest` of a given a regular expression.
-
 ### Installation
 Download or clone this repo (`git-artifact`) and add make it available in the PATH. Given that `git-artifact` is in the PATH, then `git` can use it as an command like `git artifact`. It is now integrated with git and git is extended.
 
@@ -129,3 +121,4 @@ TODO: based on count..
 
 ### Promotions
 There are few ways to you can do promotions. 
+

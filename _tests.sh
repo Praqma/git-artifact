@@ -6,12 +6,19 @@ set -euo pipefail
 [[ ${debug:-} == true ]] && set -x
 PATH=$(pwd):$PATH
 
+which git 
+git --version
+
 cd .test
 root_folder=$(pwd)
+echo "Cleaning $(pwd)"
+git clean -xffdq .
 
 local_tester_repo=.local
 remote_tester_repo=.remote
 clone_tester_repo=.clone
+
+
 
 function testcase_header() {
     [[ ${verbose:-} == true ]] || return 0
@@ -29,7 +36,7 @@ function eval_testcase() {
         git log --graph --all --oneline --decorate --format="%d %s" > "${root_folder}/${test}/git-test.log"
     fi
     cd "${root_folder}/${test}"
-    if diff -Z git-test.log git-reference.log ; then 
+    if diff -w git-test.log git-reference.log ; then 
         if [[ ${verbose:-} == true ]] ; then 
             cat git-test.log
             echo "INFO: Test $test : OK"
@@ -157,7 +164,7 @@ testcase_header
     cd ../$clone_tester_repo
     git artifact fetch-co-latest --regex 'v*.*'
 
-} > ${test}/run.log 2>&1 || { pwd && cat ../run.log; }
+} > ${test}/run.log 2>&1 || { echo "ERROR_CODE: $?";  pwd && cat ../run.log; }
 eval_testcase
 
 test="5.1"
