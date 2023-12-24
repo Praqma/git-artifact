@@ -19,7 +19,7 @@ A few remarks, aspects and thoughts when storing the artifacts
 - easy to append artifacts as stages evolves with more artifacts
 - no need to zip before upload - just commit as the artifact should be used.
 - easy to add information, environment, tools and git source sha1 in the artifact for traceability and later reproduction
-- add the source code as a dependency to the artifact. It will then be easy
+- add the source code as a dependency to the artifact. It will then be easy restore the source for diff and debugging
 
 ### Consumer of the artifacts
 A few remarks, aspects and thoughts when retrieving the artifacts 
@@ -120,5 +120,15 @@ TODO: based on count..
 - You can download all tags without checkout and then you can search for meta-data in the annotated tags without suffering large data transfer and storage in order to clean.
 
 ### Promotions
-There are few ways to you can do promotions. 
+There are genrally default two ways to you can do promotions.
+Building new artifacts for the release is like a new artifact using the above patterns, which can either be a new or appended artifacts.
+
+Promotion decision should also be seen in connection related to pruning of tag which is not valid of any interest anymore. It should be simple and easy to prune without fear of deleting tags that should not be deleted
+
+#### Using different repository
+This way is like promotion in normal artifact managemnet systems, where you promote to from one project/repository to another. You basically download the tag from the original repository and then push the tag to promotion reposity. This way you can control access and keep different URL's for candidates and releases.
+
+#### Using same repository
+This way requires you to create a tag using a release tag pattern. The tag can either be a new unrelated tag or it can be append on top if a release candidate tag.
+
 
