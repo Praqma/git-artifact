@@ -35,7 +35,7 @@ Git normally stacks the history hence you cannot delete commit in the middle of 
 The history is basically like this 
 
 ``` mermaid
-%%{init: { 'gitGraph': {'showCommitLabel': false, 'showBranches': false}} }%%
+%%{init: { 'gitGraph': {'showCommitLabel': false, 'showBranches': true}} }%%
 gitGraph
    commit id: "init" tag: "init"
    branch latest-1.0
@@ -60,7 +60,6 @@ gitGraph
 graph TD;
     0.1/bin --> main;
     0.2/test --> 0.2/src --> 0.2/bin --> main;
-    0.2/bin --> main;
     0.3/bin --> main;
 ```
 
