@@ -33,13 +33,37 @@ A few remarks, aspects and thoughts when retrieving the artifacts
 Git normally stacks the history hence you cannot delete commit in the middle of the history. `git-artifact` make a "horizontal" history - i.e the commits are not stacked on top of each other, but next to each other.
 
 The history is basically like this 
+
+``` mermaid
+%%{init: { 'gitGraph': {'showCommitLabel': false, 'showBranches': false}} }%%
+gitGraph
+   commit id: "init" tag: "init"
+   branch latest-1.0
+   branch latest-1.1
+   branch latest-1.2
+   branch latest-2.0
+   branch latest
+   checkout latest-1.0
+   commit id: "1.0/bin" tag: "1.0/bin"
+   commit id: "1.0/src" tag: "1.0/src"
+   checkout latest-1.1
+   commit id: "1.1/bin" tag: "1.1"
+   checkout latest-1.2
+   commit id: "1.2/bin" tag: "1.2"
+   checkout latest-2.0
+   commit id: "2.0/bin" tag: "2.0"
+   checkout latest-1.0
+   commit id: "2.0/test" tag: "2.0/test"
+``` 
+  
+``` mermaid
+graph TD;
+    0.1/bin --> main;
+    0.2/test --> 0.2/src --> 0.2/bin --> main;
+    0.2/bin --> main;
+    0.3/bin --> main;
 ```
-          [0.2/test] 
-             |
-[0.1/bin] [0.2/bin]  [0.3/bin]
-|           /          / 
-<main>
-```
+
 `git-artifacts` has all the functions available that make the above history straight for and natural workflow. 
 
 ### Prerequisites 
