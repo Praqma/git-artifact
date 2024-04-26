@@ -4,7 +4,7 @@
 I have, over the years in the embbeded enterprise industry, constantly come across many scenarios where zipping, downloading and unzipping generic dependencies and maintaining workspace
 has slowed down turn around time for developers and CI system. Git is a fantastic zipper it self and you get integrity of workspaces for free.
 
-Git has always been mentioned to be bad for storing artifacts due to the block chain technology and distrubuted architecture. Git-artifact make sure this problem is handled by storing commits "horisontally" using tags rather than the default "stacked" way. It gives a few advantages compared to standard usage of git: 
+Git has always been mentioned to be bad for storing artifacts due to the block chain technology and distrubuted architecture. `git-artifact` make sure this problem is handled by storing commits "horisontally" using tags rather than the default "stacked" way. It gives a few advantages compared to standard usage of git: 
 - Firstly; You can garbage collect intermidiate artifacts by just deleting the tag
 - Secondly; You only fetch what you need - even without using shallow. 
 
@@ -33,14 +33,41 @@ A few remarks, aspects and thoughts when retrieving the artifacts
 Git normally stacks the history hence you cannot delete commit in the middle of the history. `git-artifact` make a "horizontal" history - i.e the commits are not stacked on top of each other, but next to each other.
 
 The history is basically like this 
-```
-          [0.2/test] 
-             |
-[0.1/bin] [0.2/bin]  [0.3/bin]
-|           /          / 
-<main>
-```
-`git-artifacts` has all the functions available that make the above history straight for and natural workflow. 
+
+``` mermaid
+%%{init: { 
+    'gitGraph': {
+        'loglevel' : 'debug',
+        'orientation': 'vertical', 
+        'showCommitLabel': true, 
+        'showBranches': false
+    }} }%%
+gitGraph:
+   commit id: "init" tag: "init" type:  HIGHLIGHT
+   branch latest-1.0 order: 2
+   branch latest-1.1 order: 3
+   branch latest-1.2 order: 4
+   branch latest-2.0 order: 5
+   checkout latest-1.0
+   commit id: "1.0/bin" tag: "1.0/bin"
+   commit id: "1.0/src" tag: "1.0/src"
+   checkout latest-1.1
+   commit id: "1.1/bin" tag: "1.1"
+   checkout latest-1.2
+   commit id: "1.2/bin" tag: "1.2"
+   checkout latest-2.0
+   commit id: "2.0/bin" tag: "2.0"
+   checkout main
+   commit id: "update scripts" tag: "main" type:  HIGHLIGHT
+   branch foo order: 1
+   checkout foo
+   commit id: "3.0/bin" tag: "3.0/bin"
+   checkout latest-1.0
+   commit id: "2.0/test" tag: "2.0/test"
+``` 
+
+
+`git-artifact` has all the functions available that make the above history natural workflow. 
 
 ### Prerequisites 
 The tool uses tags hence the producer need to tag push-rights. It is also beneficial to have tag delete-rights to clean old artifacts. 
