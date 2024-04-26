@@ -55,15 +55,9 @@ gitGraph
    checkout latest-1.0
    commit id: "2.0/test" tag: "2.0/test"
 ``` 
-  
-``` mermaid
-graph TD;
-    0.1/bin --> main;
-    0.2/test --> 0.2/src --> 0.2/bin --> main;
-    0.3/bin --> main;
-```
 
-`git-artifacts` has all the functions available that make the above history straight for and natural workflow. 
+
+`git-artifacts` has all the functions available that make the above history natural workflow. 
 
 ### Prerequisites 
 The tool uses tags hence the producer need to tag push-rights. It is also beneficial to have tag delete-rights to clean old artifacts. 
