@@ -139,7 +139,10 @@ cmd_init() {
     local _base_branch=
     set_base_branch _base_branch
 
-    git init -b ${_base_branch} "$_dir" 
+    git init -b "${_base_branch}" "$_dir" || {
+         git init "$_dir"
+         git -C "$_dir" switch -C "${_base_branch}"
+    }
     cd "$_dir"
     git_local_config
     git remote add origin "$arg_remoteurl"
@@ -151,7 +154,11 @@ cmd_init() {
         echo ""
         echo ".. based on the tool: https://github.com/Praqma/git-artifact.git" 
     } > README.md
-    git add .
+    git add . || {
+        pwd
+        echo "ERROR: git add failed"
+        exit 1
+    }
     git commit -m "First commit of git artifact"
     git push origin "HEAD:refs/heads/${_base_branch}" -f
 

@@ -30,19 +30,19 @@ function testcase_header() {
 
 function eval_testcase() {
     # expect to be in repo to test against
-    if [[ -s "${root_folder}/${test}/git-test.log" ]]; then 
-        echo "INFO: ${root_folder}/${test}/git-test.log is not empty - use it"
-    else
+    if ! [[ -s "${root_folder}/${test}/git-test.log" ]]; then 
         git log --graph --all --oneline --decorate --format="%d %s" > "${root_folder}/${test}/git-test.log"
+    else
+        [[ ${debug:-} == true ]] && echo "Test $test : INFO: ${root_folder}/${test}/git-test.log is already available - use it"
     fi
     cd "${root_folder}/${test}"
     if diff -w git-test.log git-reference.log ; then 
         if [[ ${verbose:-} == true ]] ; then 
             cat git-test.log
-            echo "INFO: Test $test : OK"
+            echo "Test $test : OK"
             echo
         else
-            echo "INFO: Test $test : OK : ${testcase_synopsis}"
+            echo "Test $test : OK : ${testcase_synopsis}"
         fi
     else
         echo "ERROR: Test $test failed: ${testcase_synopsis}"
@@ -52,10 +52,12 @@ function eval_testcase() {
 }
 
 function generate_base_repo() {
-    rm -rf "$local_tester_repo/" "$remote_tester_repo/" "$clone_tester_repo/"
-    git init --bare -b ${default_branch:-main} $remote_tester_repo 
-    git -C $remote_tester_repo symbolic-ref HEAD refs/heads/${default_branch:-main}
-    git artifact init --url=$(pwd)/$remote_tester_repo --path $local_tester_repo -b ${default_branch:-main} 
+    rm -rf "${local_tester_repo:?}/" "${remote_tester_repo:?}/" "${clone_tester_repo:?}/"
+    git init --bare -b "${default_branch:-main}" $remote_tester_repo || {
+        git init --bare $remote_tester_repo
+        git -C $remote_tester_repo symbolic-ref HEAD refs/heads/${default_branch:-main}
+    }
+    git artifact init --url="$(pwd)/$remote_tester_repo" --path $local_tester_repo -b ${default_branch:-main} 
     cd $local_tester_repo
     touch test.txt
     git artifact add-n-push -t v1.0
