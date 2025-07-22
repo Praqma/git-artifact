@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 clear 
 
@@ -9,8 +9,8 @@ set -euo pipefail
 }
 PATH=$(pwd):$PATH
 
-which git 
-git --version
+source "$(dirname "$0")/git-artifact"
+check_environment
 
 cd .test
 root_folder=$(pwd)
@@ -21,7 +21,6 @@ local_tester_repo=.local
 remote_tester_repo=.remote
 clone_tester_repo=.clone
 global_exit_code=0
-
 
 function testcase_header() {
     [[ ${verbose:-} == true ]] || return 0
