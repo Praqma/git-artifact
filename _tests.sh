@@ -3,7 +3,10 @@
 clear 
 
 set -euo pipefail
-[[ ${debug:-} == true ]] && set -x
+[[ ${debug:-} == true ]] && {
+    echo "debug: ${debug}"
+    set -x
+}
 PATH=$(pwd):$PATH
 
 which git 
