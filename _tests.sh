@@ -17,7 +17,7 @@ git clean -xffdq .
 local_tester_repo=.local
 remote_tester_repo=.remote
 clone_tester_repo=.clone
-
+global_exit_code=0
 
 
 function testcase_header() {
@@ -45,8 +45,10 @@ function eval_testcase() {
             echo "Test $test : OK : ${testcase_synopsis}"
         fi
     else
-        echo "ERROR: Test $test failed: ${testcase_synopsis}"
-        exit 1
+        echo "Test $test : NOK : ${testcase_synopsis}"
+        [[ ${verbose:-} == true ]] && cat git-test.log
+        echo
+        global_exit_code=1
     fi
     cd "${root_folder}"
 }
@@ -197,3 +199,7 @@ testcase_header
     git artifact fetch-tags --sha1 "$sha1"
 } > ${test}/run.log 2>&1 || cat ../${test}/run.log
 eval_testcase
+
+[[ ${global_exit_code:-0} -eq 0 ]] && echo "All tests passed successfully." || echo "Some tests failed."
+# Exit with the global exit code
+exit $global_exit_code
