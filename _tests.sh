@@ -47,13 +47,15 @@ function eval_testcase() {
         else
             echo "Test $test : OK : ${testcase_synopsis}"
         fi
+        mv run.log ok.log
     else
         echo "Test $test : NOK : ${testcase_synopsis}"
+        mv run.log nok.log
         [[ ${verbose:-} == true ]] && cat git-test.log
-        echo
-        global_exit_code=1
+        global_exit_code=2
     fi
     cd "${root_folder}"
+    echo
 }
 
 function generate_base_repo() {
@@ -75,7 +77,10 @@ function generate_base_repo() {
     cd ..
 }
 
-echo  "Running testcases; You can find run details for each test in <test>/run.log"
+echo "Running testcases; You can find run details for each test in:"
+echo "  - <test>/run.log(unknown)"
+echo "  - <test>/ok.log(all good)"
+echo "  - <test>/nok.log(failed tests)"
 echo
 
 export test="1"
@@ -203,6 +208,29 @@ testcase_header
 } > ${test}/run.log 2>&1 || cat ../${test}/run.log
 eval_testcase
 
-[[ ${global_exit_code:-0} -eq 0 ]] && echo "All tests passed successfully." || echo "Some tests failed."
+echo
+echo "########################################"
+echo "All tests completed. Checking results..."
+echo "########################################"
+echo
+
+if [[ ${global_exit_code:-0} -eq 0 ]]; then 
+    echo "All tests passed successfully."
+else
+    echo
+    echo "Contents of failed test logs:"
+    echo "-----------------------------"
+    for log in $( find . -name run.log -o -name nok.log | sort ); do
+        echo
+        echo "--- $log start ------------------------"
+        cat $log
+        echo "--- $log end ------------------------"
+        echo
+    done
+    echo
+    echo "Some tests failed. - List of logs:"
+    find . -name run.log -o -name nok.log | sort
+    echo
+fi  
 # Exit with the global exit code
 exit $global_exit_code
