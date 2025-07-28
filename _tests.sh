@@ -33,13 +33,18 @@ function testcase_header() {
 
 function eval_testcase() {
     # expect to be in repo to test against
+    
+    # In git 2.48 changes the way HEAD is handled and for some reason it is not set 
+    # in order to be backward compatible we remove the HEAD reference
+    rm -rf .git/refs/remotes/origin/HEAD
+    
     if ! [[ -s "${root_folder}/${test}/git-test.log" ]]; then 
-        git log --graph --all --oneline --decorate --format="%d %s" > "${root_folder}/${test}/git-test.log"
+        git log --graph --all --oneline --format="%d %s" > "${root_folder}/${test}/git-test.log"
     else
         [[ ${debug:-} == true ]] && echo "Test $test : INFO: ${root_folder}/${test}/git-test.log is already available - use it"
     fi
     cd "${root_folder}/${test}"
-    if diff -w git-test.log git-reference.log ; then 
+    if diff -w git-reference.log git-test.log ; then 
         if [[ ${verbose:-} == true ]] ; then 
             cat git-test.log
             echo "Test $test : OK"
