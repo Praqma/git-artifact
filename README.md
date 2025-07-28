@@ -65,7 +65,7 @@ git artifact init --url=git@github.com:__USERNAME__/test-git-artifact.git --path
 
 ### Add the artifact
 
-Copy the artifacts to your path in the folder structure the "consumer" desire it. There is not reason to tar or zip it. Git will handling this for optimized storage and easiness.
+Copy the artifacts to your path in the folder structure the "consumer" desires. There is no reason to tar or zip it. Git will handle this for optimized storage and ease of use.
 
 ```bash
 cd test-git-artifact
@@ -74,7 +74,7 @@ touch artifact-1.0
 git artifact add-n-push -t v1.0
 ```
 
-Voila! The artifact v1.0 is now commited, pushed _and_ importantly - the workspace is set back to the default branch of the remote repository. It is now ready to make a new artifact based on the default branched
+Voila! The artifact v1.0 is now committed, pushed _and_ importantly - the workspace is set back to the default branch of the remote repository. It is now ready to make a new artifact based on the default branch.
 
 ### Finding and getting artifacts
 
@@ -98,12 +98,12 @@ git artifact fetch-co-latest --regex 'v*.*'
 
 ### Appending to an artifact
 
-You can append to an artifact with advantage. Let say you create a library and you run a lot of tests in a later stage and the result is a test report. You can then just add that on top of the library tag.  
+You can append to an artifact advantageously. Let's say you create a library and you run a lot of tests at a later stage and the result is a test report. You can then just add that on top of the library tag.  
 
 - Download and checkout the artifact ( see above )
 - Add a new artifact ( see above )
 
-You should of course consider this in your naming convension. Consider something like this:
+You should of course consider this in your naming convention. Consider something like this:
 
 ```bash
 vX.Y.Z/release-note
@@ -114,31 +114,31 @@ vX.Y.Z/lib
 
 #### Add the source code that was used to build the artifact
 
-The source code in many companies and open-source projects are free to view, debug and edit. You can make it easy accessable by adding the source code as submodule and sha1 in to the artifact history. It sounds odd, but it gives the developers easy access to checkout the correct version that was used to build artifact.
+The source code in many companies and open-source projects is free to view, debug and edit. You can make it easily accessible by adding the source code as a submodule and sha1 into the artifact history. It sounds odd, but it gives developers easy access to checkout the correct version that was used to build the artifact.
 
-This way it actually possible to create a full block-chain of everything that was involved in producing a product.
+This way it is actually possible to create a full blockchain of everything that was involved in producing a product.
 
 ### LFS
 
-`git artifact` work great out of the box without any extensions like LFS. It can though still be interesting to commit an `git-lfs` configuration to the default branch
+`git artifact` works great out of the box without any extensions like LFS. It can though still be interesting to commit a `git-lfs` configuration to the default branch
 
-- Artifact sets that can many common binary/large files from version to version will then be able to detect that it already have have this file in the LFS storage and do not have to fetch/push it again.
-- You can download all tags without checkout and then you can search for meta-data in the annotated tags without suffering large data transfer and storage in order to clean.
+- Artifact sets that contain many common binary/large files from version to version will then be able to detect that they already have this file in the LFS storage and do not have to fetch/push it again.
+- You can download all tags without checkout and then you can search for metadata in the annotated tags without suffering large data transfer and storage in order to clean up.
 
 ### Promotions
 
-There are genrally default two ways to you can do promotions.
-Building new artifacts for the release is like a new artifact using the above patterns, which can either be a new or appended artifacts.
+There are generally two default ways you can do promotions.
+Building new artifacts for the release is like creating a new artifact using the above patterns, which can either be a new or appended artifact.
 
-Promotion decision should also be seen in connection related to pruning of tag which is not valid of any interest anymore. It should be simple and easy to prune without fear of deleting tags that should not be deleted
+Promotion decisions should also be seen in connection to pruning of tags which are no longer valid or of any interest. It should be simple and easy to prune without fear of deleting tags that should not be deleted.
 
 #### Using different repository
 
-This way is like promotion in normal artifact managemnet systems, where you promote to from one project/repository to another. You basically download the tag from the original repository and then push the tag to promotion reposity. This way you can control access and keep different URL's for candidates and releases.
+This way is like promotion in normal artifact management systems, where you promote from one project/repository to another. You basically download the tag from the original repository and then push the tag to the promotion repository. This way you can control access and keep different URLs for candidates and releases.
 
 #### Using same repository
 
-This way requires you to create a tag using a release tag pattern. The tag can either be a new unrelated tag or it can be append on top if a release candidate tag.
+This way requires you to create a tag using a release tag pattern. The tag can either be a new unrelated tag or it can be appended on top of a release candidate tag.
 
 ### Add information to the annotated tag
 
@@ -158,28 +158,28 @@ Alternatively, `git-artifact` can operate in branch mode, maintaining a `latest`
 
 ### Producer of artifacts
 
-A few remarks, aspects and thoughts when storing the artifacts
+A few remarks, aspects and thoughts when storing artifacts:
 
-- easy to append artifacts as stages evolves with more artifacts
-- no need to zip before upload - just commit as the artifact should be used.
-- easy to add information, environment, tools and git source sha1 in the artifact for traceability and later reproduction
-- add the source code as a dependency to the artifact. It will then be easy restore the source for diff and debugging
+- Easy to append artifacts as stages evolve with more artifacts
+- No need to zip before upload - just commit as the artifact should be used
+- Easy to add information, environment, tools and git source sha1 in the artifact for traceability and later reproduction
+- Add the source code as a dependency to the artifact. It will then be easy to restore the source for diff and debugging
 
 ### Consumer of the artifacts
 
-A few remarks, aspects and thoughts when retrieving the artifacts
+A few remarks, aspects and thoughts when retrieving artifacts:
 
-- The consumer do not need anything than standard git
-- Pipelines just consumes the artifact unzip and ready to use as they were produced
-- Use your favorit git dependency system like submodules(this is the correct way for submodule usage btw ), repo tool or ..
-- Even a consumer can be a producer by adding further artifacts on top the consumed commit with a new commit and tag
-- git understand the content in workspace and git clean does not remove artifacts in contrast to downloaded artifacts
+- The consumer does not need anything other than standard git
+- Pipelines just consume the artifact unzipped and ready to use as they were produced
+- Use your favorite git dependency system like submodules (this is the correct way for submodule usage btw), repo tool or similar
+- Even a consumer can be a producer by adding further artifacts on top of the consumed commit with a new commit and tag
+- Git understands the content in workspace and git clean does not remove artifacts in contrast to downloaded artifacts
 
 ### How is it done
 
-Git normally stacks the history hence you cannot delete commit in the middle of the history. `git-artifact` make a "horizontal" history - i.e the commits are not stacked on top of each other, but next to each other.
+Git normally stacks the history; hence you cannot delete commits in the middle of the history. `git-artifact` makes a "horizontal" history - i.e., the commits are not stacked on top of each other, but next to each other.
 
-The history of git-artifact workflow can basically look like this:
+The history of the git-artifact workflow can basically look like this:
 
 ``` mermaid
 %%{init: { 
