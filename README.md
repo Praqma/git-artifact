@@ -84,60 +84,6 @@ git artifact find-latest -r 'v*.*'
 git artifact fetch-co-latest --regex 'v*.*'
 ```
 
-## Advanced
-
-### Appending to an artifact
-
-You can append to an artifact advantageously. Let's say you create a library and you run a lot of tests at a later stage and the result is a test report. You can then just add that on top of the library tag.  
-
-- Download and checkout the artifact ( see above )
-- Add a new artifact ( see above )
-
-You should of course consider this in your naming convention. Consider something like this:
-
-```bash
-vX.Y.Z/release-note
-vX.Y.Z/test
-vX.Y.Z/src
-vX.Y.Z/lib
-```
-
-#### Add the source code that was used to build the artifact
-
-The source code in many companies and open-source projects is free to view, debug and edit. You can make it easily accessible by adding the source code as a submodule and sha1 into the artifact history. It sounds odd, but it gives developers easy access to checkout the correct version that was used to build the artifact.
-
-This way it is actually possible to create a full blockchain of everything that was involved in producing a product.
-
-### LFS
-
-`git artifact` works great out of the box without any extensions like LFS. It can though still be interesting to commit a `git-lfs` configuration to the default branch
-
-- Artifact sets that contain many common binary/large files from version to version will then be able to detect that they already have this file in the LFS storage and do not have to fetch/push it again.
-- You can download all tags without checkout and then you can search for metadata in the annotated tags without suffering large data transfer and storage in order to clean up.
-
-### Promotions
-
-There are generally two default ways you can do promotions.
-Building new artifacts for the release is like creating a new artifact using the above patterns, which can either be a new or appended artifact.
-
-Promotion decisions should also be seen in connection to pruning of tags which are no longer valid or of any interest. It should be simple and easy to prune without fear of deleting tags that should not be deleted.
-
-#### Using different repository
-
-This way is like promotion in normal artifact management systems, where you promote from one project/repository to another. You basically download the tag from the original repository and then push the tag to the promotion repository. This way you can control access and keep different URLs for candidates and releases.
-
-#### Using same repository
-
-This way requires you to create a tag using a release tag pattern. The tag can either be a new unrelated tag or it can be appended on top of a release candidate tag.
-
-### Add information to the annotated tag
-
-TODO: option for file or string
-
-### Pruning / cleaning artifacts
-
-TODO: based on count..
-
 ## Notes
 
 ### Permissions needed
@@ -203,3 +149,57 @@ gitGraph:
    commit id: "2.0/src" tag: "2.0/src"
    commit id: "2.0/test" tag: "2.0/test"
 ```
+
+## Advanced
+
+### Appending to an artifact
+
+You can append to an artifact advantageously. Let's say you create a library and you run a lot of tests at a later stage and the result is a test report. You can then just add that on top of the library tag.  
+
+- Download and checkout the artifact ( see above )
+- Add a new artifact ( see above )
+
+You should of course consider this in your naming convention. Consider something like this:
+
+```bash
+vX.Y.Z/release-note
+vX.Y.Z/test
+vX.Y.Z/src
+vX.Y.Z/lib
+```
+
+#### Add the source code that was used to build the artifact
+
+The source code in many companies and open-source projects is free to view, debug and edit. You can make it easily accessible by adding the source code as a submodule and sha1 into the artifact history. It sounds odd, but it gives developers easy access to checkout the correct version that was used to build the artifact.
+
+This way it is actually possible to create a full blockchain of everything that was involved in producing a product.
+
+### LFS
+
+`git artifact` works great out of the box without any extensions like LFS. It can though still be interesting to commit a `git-lfs` configuration to the default branch
+
+- Artifact sets that contain many common binary/large files from version to version will then be able to detect that they already have this file in the LFS storage and do not have to fetch/push it again.
+- You can download all tags without checkout and then you can search for metadata in the annotated tags without suffering large data transfer and storage in order to clean up.
+
+### Promotions
+
+There are generally two default ways you can do promotions.
+Building new artifacts for the release is like creating a new artifact using the above patterns, which can either be a new or appended artifact.
+
+Promotion decisions should also be seen in connection to pruning of tags which are no longer valid or of any interest. It should be simple and easy to prune without fear of deleting tags that should not be deleted.
+
+#### Using different repository
+
+This way is like promotion in normal artifact management systems, where you promote from one project/repository to another. You basically download the tag from the original repository and then push the tag to the promotion repository. This way you can control access and keep different URLs for candidates and releases.
+
+#### Using same repository
+
+This way requires you to create a tag using a release tag pattern. The tag can either be a new unrelated tag or it can be appended on top of a release candidate tag.
+
+### Add information to the annotated tag
+
+TODO: option for file or string
+
+### Pruning / cleaning artifacts
+
+TODO: based on count..
