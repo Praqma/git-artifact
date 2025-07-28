@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# git-artifact: use a git repository as artifact management storage
+# git-artifact: Effortless Artifact Management Using Git
 #
 
 function check_environment() {
