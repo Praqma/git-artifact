@@ -2,15 +2,22 @@
 
 > Effortless artifact management using Git repositories
 
+## Why?
+
+- Seamlessly store, version, and retrieve build artifacts with the power of Git
+- Automate artifact workflows, ensure traceability, and simplify DevOps pipelines
+
+## Benefits
+
+- You can garbage collect intermediate artifacts by just deleting the tag
+- You only fetch what you need - even without using shallow.
+
 ## The rationale for storing artifacts in git
 
 I have, over the years in the embedded enterprise industry, constantly come across many scenarios where zipping, downloading and unzipping generic dependencies and maintaining workspace
 has slowed down turnaround time for developers and CI system. Git is a fantastic zipper it self and you get integrity of workspaces for free.
 
 Git has always been mentioned to be bad for storing artifacts due to the block chain technology and distributed architecture. `git-artifact` makes sure this problem is handled by storing commits "horizontally" using tags rather than the default "stacked" way. It gives a few advantages compared to standard usage of git:
-
-- Firstly; You can garbage collect intermidiate artifacts by just deleting the tag
-- Secondly; You only fetch what you need - even without using shallow.
 
 ### CI/CD integration
 
