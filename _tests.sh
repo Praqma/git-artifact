@@ -68,7 +68,7 @@ function generate_base_repo() {
         git init --bare $remote_tester_repo
         git -C $remote_tester_repo symbolic-ref HEAD refs/heads/${default_branch:-main}
     }
-    git artifact init --url="$(pwd)/$remote_tester_repo" --path $local_tester_repo -b ${default_branch:-main} 
+    git artifact init --url="$(pwd)/$remote_tester_repo" --path $local_tester_repo -b ${default_branch:-main}
     cd $local_tester_repo
     touch test.txt
     git artifact add-n-push -t v1.0
@@ -138,7 +138,7 @@ eval_testcase
 test="4"
 testcase_synopsis="base-repo ; clone; add-n-push with branch"
 testcase_header
-{ 
+{
     cd $test
     generate_base_repo
     git artifact clone --url=$(pwd)/$remote_tester_repo -b latest --path $clone_tester_repo
@@ -153,7 +153,7 @@ eval_testcase
 test="5"
 testcase_synopsis="base-repo ; clone; fetch-co-latest pattern"
 testcase_header
-{ 
+{
     cd $test
     generate_base_repo
     sleep 1
@@ -186,7 +186,7 @@ eval_testcase
 test="5.1"
 testcase_synopsis="base-repo ; clone; find-latest pattern"
 testcase_header
-{ 
+{
     cd $test
     generate_base_repo
     sleep 1
@@ -200,7 +200,7 @@ eval_testcase
 test="6"
 testcase_synopsis="base-repo ; clone; fetch-tags"
 testcase_header
-{ 
+{
     cd $test
     generate_base_repo
     git artifact clone --url=$(pwd)/$remote_tester_repo -b latest --path $clone_tester_repo
@@ -235,6 +235,7 @@ else
     echo "Some tests failed. - List of logs:"
     find . -name run.log -o -name nok.log | sort
     echo
-fi  
+fi
+
 # Exit with the global exit code
 exit $global_exit_code

@@ -45,7 +45,6 @@ function check_git_environment() {
         echo >&2 "   not as \`$basename\`." >&2
         exit 126
     fi
-
 }
 
 function show_info() {
@@ -85,20 +84,20 @@ h,help          show the help
 q               quiet
 d               show debug messages
 
- options for 'init' and 'clone'
+options for 'init' and 'clone'
 u,url=        the remote url
 p,path=       the optional path for init and clone 
 
- options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
+options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
 b,branch=     use branch for local changes and pushes
 
- options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
+options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
 t,tag=         the tag to be created
 
- options for 'fetch-co-latest', 'find-latest'
+options for 'fetch-co-latest', 'find-latest'
 r,regex=       the reg-ex pattern to latest of
 
- options for 'fetch-tags'
+options for 'fetch-tags'
 s,sha1=       The sha1 of which to get tags from from 
 "
 }
@@ -109,7 +108,6 @@ debug () {
         printf "%s%s\n" '' "$*" >&2
     fi
 }
-
 
 set_repo_dir() {
     local -n _ref_dir=${1}
@@ -149,7 +147,7 @@ set_remote_default_branch() {
     _ref_remote_default_branch=$(git ls-remote --symref "$arg_remoteurl" HEAD | grep -E 'ref:[[:space:]].+[[:space:]]HEAD' | cut -f 1 | cut -d '/' -f 3-)
     
     if [[ -n ${_ref_remote_default_branch:-} ]]; then 
-	    echo "Found: ${_ref_remote_default_branch}"
+        echo "Found: ${_ref_remote_default_branch}"
     else
         local _base_branch=
         set_base_branch _base_branch
@@ -181,8 +179,8 @@ cmd_init() {
     set_base_branch _base_branch
 
     git init -b "${_base_branch}" "$_dir" || {
-         git init "$_dir"
-         git -C "$_dir" switch -C "${_base_branch}"
+        git init "$_dir"
+        git -C "$_dir" switch -C "${_base_branch}"
     }
     cd "$_dir"
     git_local_config
@@ -215,7 +213,6 @@ cmd_init() {
 }
 
 cmd_clone() {
-
     local _dir=
     set_repo_dir _dir
     
@@ -281,9 +278,7 @@ cmd_push(){
     git log -2 --oneline --decorate --graph --all
 
     echo "All good.. get back to clear state for next artifact..."
-    
 }
-
 
 cmd_add-n-push() {
     cmd_add-n-tag
@@ -352,14 +347,12 @@ cmd_find-latest() {
     printf "%s\n" "$__latest_tag"
 }
 
-
 cmd_fetch-co-latest() {
     latest_tag=""
     find-latest latest_tag
     git fetch origin +refs/tags/$latest_tag:refs/tags/$latest_tag
     git checkout $latest_tag
 }
-
 
 cmd_fetch-tags() {
     echo "Getting tags from: $arg_sha1"
