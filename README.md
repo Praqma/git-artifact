@@ -2,15 +2,11 @@
 
 > Effortless artifact management using Git repositories
 
-## Why use `git-artifact`?
-
-`git-artifact` brings artifact management directly into your Git workflow, making it easy to store, version, and retrieve build artifacts without extra infrastructure.
-
 ## Quick Start (TL;DR)
 
-1. Install: `curl -o ~/.local/bin/git-artifact https://raw.githubusercontent.com/praqma/git-artifact/main/git-artifact && chmod +x ~/.local/bin/git-artifact` (Make sure `~/.local/bin` is in your `PATH`)
+1. Install binary in PATH: `curl -o ~/.local/bin/git-artifact https://raw.githubusercontent.com/praqma/git-artifact/main/git-artifact && chmod +x ~/.local/bin/git-artifact`
 2. Create repo on github: <https://github.com/new?name=test-git-artifact>
-3. Init the repo locally: `git artifact init git@github.com:__USERNAME__/test-git-artifact.git --path test-git-artifact` (replace `__USERNAME__` with your GitHub username)
+3. Init the repo locally (Update `_USER_`): `git artifact init git@github.com:_USER_/test-git-artifact.git --path test-git-artifact`
 4. Add artifact: `touch artifact-1.0 && git artifact add-n-push -t v1.0`
 5. Find & Retrieve: `git artifact find-latest` & `git artifact fetch-co-latest`
 
@@ -53,8 +49,8 @@ Now you can use `git artifact` as a regular Git command.
 - Use the `git artifact init` command to initialize a new repository locally for managing artifacts.
 
 ```bash
-# replace `__USERNAME__` with your GitHub username
-git artifact init --url=git@github.com:__USERNAME__/test-git-artifact.git --path test-git-artifact
+# replace `_USER_` with your GitHub username
+git artifact init --url=git@github.com:_USER_/test-git-artifact.git --path test-git-artifact
 ```
 
 ### Add the artifact
@@ -74,7 +70,7 @@ Voila! The artifact v1.0 is now committed, pushed _and_ importantly - the worksp
 
 ```bash
 # You can use the `git artifact clone` command to clone a repository and set it up for artifact management. Note that you only clone and get the default branch!
-git artifact clone --url=git@github.com:__USERNAME__/test-git-artifact.git --path test-git-artifact
+git artifact clone --url=git@github.com:_USER_/test-git-artifact.git --path test-git-artifact
 cd test-git-artifact
 ```
 
