@@ -6,7 +6,7 @@
 
 1. Install binary in PATH: `curl -o ~/.local/bin/git-artifact https://raw.githubusercontent.com/praqma/git-artifact/main/git-artifact && chmod +x ~/.local/bin/git-artifact`
 2. Create repo on github: <https://github.com/new?name=test-git-artifact>
-3. Init the repo locally (Update `_USER_`): `git artifact init git@github.com:_USER_/test-git-artifact.git --path test-git-artifact`
+3. Init the repo locally (Update `_USER_`): `git artifact init --url=git@github.com:_USER_/test-git-artifact.git --path test-git-artifact && cd test-git-artifact`
 4. Add artifact: `touch artifact-1.0 && git artifact add-n-push -t v1.0`
 5. Find & Retrieve: `git artifact find-latest` & `git artifact fetch-co-latest`
 
