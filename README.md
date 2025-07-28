@@ -6,19 +6,13 @@
 
 `git-artifact` brings artifact management directly into your Git workflow, making it easy to store, version, and retrieve build artifacts without extra infrastructure.
 
-### Super simple
+## Quick Start (TL;DR)
 
-To push artifacts:
-
-- `git artifact init` to set up a new repository for artifact management.
-- Add files (e.g., binaries, libraries) directly to the repository without zipping or archiving.
-- Use `git artifact add-n-push` to commit and push artifacts with a tag, like `v1.0`, ensuring they are versioned and easily retrievable.
-
-To retrieve artifacts:
-
-- `git artifact clone` to clone the repository.
-- Use `git artifact find-latest -r 'v*.*'` to search for the latest version of an artifact.
-- Use `git artifact fetch-co-latest --regex 'v*.*'` to download and checkout the latest artifact version, files are ready to use!
+1. Install: `curl -o ~/.local/bin/git-artifact https://raw.githubusercontent.com/praqma/git-artifact/main/git-artifact && chmod +x ~/.local/bin/git-artifact` (Make sure `~/.local/bin` is in your `PATH`)
+2. Create repo on github: <https://github.com/new?name=test-git-artifact>
+3. Init the repo locally: `git artifact init git@github.com:__USERNAME__/test-git-artifact.git --path test-git-artifact` (replace `__USERNAME__` with your GitHub username)
+4. Add artifact: `touch artifact-1.0 && git artifact add-n-push -t v1.0`
+5. Find & Retrieve: `git artifact find-latest` & `git artifact fetch-co-latest`
 
 No external tools or complex configurations are needed. `git-artifact` leverages Git's powerful version control features to manage artifacts as if they were part of your source code.
 
