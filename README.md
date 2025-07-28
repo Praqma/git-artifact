@@ -16,14 +16,6 @@
 
 Whether for embedded, enterprise, or CI/CD environments, `git-artifact` streamlines artifact management by making it a natural extension of your existing Git processes.
 
-### CI/CD integration
-
-Triggering of new builds or tests are done the normal way as known from triggering your pipelines of source code - push or pull - simple..
-
-### Save money
-
-You can save additional license and maintainance cost and/or coqnative load by maintaining and using an additional system for artifacts. You can handle it with your current git repository manager.
-
 ### Producer of artifacts
 
 A few remarks, aspects and thoughts when storing the artifacts
