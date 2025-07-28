@@ -3,3 +3,5 @@
 **/.clone
 **/git-test.log
 **/run.log
+**/nok.log
+**/ok.log

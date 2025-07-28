@@ -6,79 +6,100 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  schedule:
+    - cron: '0 0 1 * *'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
+    inputs:
+      debug:
+        description: 'Enable debug mode'
+        type: boolean
+        required: false
+        default: false
+      verbose:
+        description: 'Enable verbose output'
+        type: boolean
+        required: false
+        default: true
+        
 jobs:
     test-git-native:
         runs-on: ubuntu-latest
 
         steps:
         - name: Checkout code
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
 
         - name: Run tests git-native
           run: | 
             git config --global user.email "git-artifact@github.com"
             git config --global user.name "Git Artifact"
             git --version
-            verbose=true bash _tests.sh || {
-                exit_code=$?
-                find . -name run.log 
-                find . -name run.log | xargs -I % cat % 
-                exit $exit_code
-            }
+            verbose=true bash _tests.sh
+            
     test-git-alpine-latest:      
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
         - name: Run tests
           run: | 
             set -eux
             git_version=latest
-            docker build --build-arg ALPINE_GIT_DOCKER_VERSION=${git_version} -t git-artifact:latest .
-            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:latest --version
-            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:latest artifact-tests || {
-                exit_code=$?
-                find . -name run.log 
-                find . -name run.log | xargs -I % cat % 
-                exit $exit_code
-            }
-          
-    test-git-alpine-v2-36-2:      
+            docker build --build-arg ALPINE_GIT_DOCKER_VERSION="${git_version}" --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t "git-artifact:${git_version}" .
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:latest" --version
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:latest" artifact-tests
+
+    test-git-alpine-v2-49-0:
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
+        - name: Run tests
+          run: | 
+            set -eux
+            git_version=v2.49.0
+            docker build --build-arg ALPINE_GIT_DOCKER_VERSION="${git_version}" --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t "git-artifact:${git_version}" .
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:${git_version}" --version
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:${git_version}" artifact-tests
+
+            
+    test-git-alpine-v2-47-2:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+        - name: Run tests
+          run: | 
+            set -eux
+            git_version=v2.47.2
+            docker build --build-arg ALPINE_GIT_DOCKER_VERSION="${git_version}" --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t "git-artifact:${git_version}" .
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:${git_version}" --version
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:${git_version}" artifact-tests
+
+    test-git-alpine-v2-36-2:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
         - name: Run tests
           run: | 
             set -eux
             git_version=v2.36.2
-            docker build --build-arg ALPINE_GIT_DOCKER_VERSION=${git_version} -t git-artifact:${git_version} .
-            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:${git_version} --version
-            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:${git_version} artifact-tests || {
-                exit_code=$?
-                find . -name run.log 
-                find . -name run.log | xargs -I % cat % 
-                exit $exit_code
-            }
+            docker build --build-arg ALPINE_GIT_DOCKER_VERSION="${git_version}" --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t "git-artifact:${git_version}" .
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:${git_version}" --version
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:${git_version}" artifact-tests
 
     test-git-alpine-v2-26-2:      
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
         - name: Run tests
           run: | 
             set -eux
             git_version=v2.26.2
-            docker build --build-arg ALPINE_GIT_DOCKER_VERSION=${git_version} -t git-artifact:${git_version} .
-            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:${git_version} --version
-            docker run --rm -e debug=${debug:-false} -e verbose=true -v $(pwd):/git -v $HOME/.ssh:/root/.ssh git-artifact:${git_version} artifact-tests || {
-                exit_code=$?
-                find . -name run.log 
-                find . -name run.log | xargs -I % cat % 
-                exit $exit_code
-            }
+            docker build --build-arg ALPINE_GIT_DOCKER_VERSION="${git_version}" --build-arg USER_ID="$(id -u)" --build-arg GROUP_ID="$(id -g)" -t "git-artifact:${git_version}" .
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:${git_version}" --version
+            docker run --rm -u "$(id -u):$(id -g)" -e debug="${{ github.event.inputs.debug}}" -e verbose="${{ github.event.inputs.verbose}}" -v "$(pwd):/git" -v "$HOME/.ssh:/root/.ssh" "git-artifact:${git_version}" artifact-tests

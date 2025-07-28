@@ -3,7 +3,10 @@
 clear 
 
 set -euo pipefail
-[[ ${debug:-} == true ]] && set -x
+[[ ${debug:-} == true ]] && {
+    echo "debug: ${debug}"
+    set -x
+}
 PATH=$(pwd):$PATH
 
 which git 
@@ -17,7 +20,7 @@ git clean -xffdq .
 local_tester_repo=.local
 remote_tester_repo=.remote
 clone_tester_repo=.clone
-
+global_exit_code=0
 
 
 function testcase_header() {
@@ -30,13 +33,18 @@ function testcase_header() {
 
 function eval_testcase() {
     # expect to be in repo to test against
+    
+    # In git 2.48 changes the way HEAD is handled and for some reason it is not set 
+    # in order to be backward compatible we remove the HEAD reference
+    rm -rf .git/refs/remotes/origin/HEAD
+    
     if ! [[ -s "${root_folder}/${test}/git-test.log" ]]; then 
-        git log --graph --all --oneline --decorate --format="%d %s" > "${root_folder}/${test}/git-test.log"
+        git log --graph --all --oneline --format="%d %s" > "${root_folder}/${test}/git-test.log"
     else
         [[ ${debug:-} == true ]] && echo "Test $test : INFO: ${root_folder}/${test}/git-test.log is already available - use it"
     fi
     cd "${root_folder}/${test}"
-    if diff -w git-test.log git-reference.log ; then 
+    if diff -w git-reference.log git-test.log ; then 
         if [[ ${verbose:-} == true ]] ; then 
             cat git-test.log
             echo "Test $test : OK"
@@ -44,11 +52,15 @@ function eval_testcase() {
         else
             echo "Test $test : OK : ${testcase_synopsis}"
         fi
+        mv run.log ok.log
     else
-        echo "ERROR: Test $test failed: ${testcase_synopsis}"
-        exit 1
+        echo "Test $test : NOK : ${testcase_synopsis}"
+        mv run.log nok.log
+        [[ ${verbose:-} == true ]] && cat git-test.log
+        global_exit_code=2
     fi
     cd "${root_folder}"
+    echo
 }
 
 function generate_base_repo() {
@@ -70,7 +82,10 @@ function generate_base_repo() {
     cd ..
 }
 
-echo  "Running testcases; You can find run details for each test in <test>/run.log"
+echo "Running testcases; You can find run details for each test in:"
+echo "  - <test>/run.log(unknown)"
+echo "  - <test>/ok.log(all good)"
+echo "  - <test>/nok.log(failed tests)"
 echo
 
 export test="1"
@@ -197,3 +212,30 @@ testcase_header
     git artifact fetch-tags --sha1 "$sha1"
 } > ${test}/run.log 2>&1 || cat ../${test}/run.log
 eval_testcase
+
+echo
+echo "########################################"
+echo "All tests completed. Checking results..."
+echo "########################################"
+echo
+
+if [[ ${global_exit_code:-0} -eq 0 ]]; then 
+    echo "All tests passed successfully."
+else
+    echo
+    echo "Contents of failed test logs:"
+    echo "-----------------------------"
+    for log in $( find . -name run.log -o -name nok.log | sort ); do
+        echo
+        echo "--- $log start ------------------------"
+        cat $log
+        echo "--- $log end ------------------------"
+        echo
+    done
+    echo
+    echo "Some tests failed. - List of logs:"
+    find . -name run.log -o -name nok.log | sort
+    echo
+fi  
+# Exit with the global exit code
+exit $global_exit_code

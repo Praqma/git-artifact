@@ -334,7 +334,10 @@ cmd_fetch-tags() {
 }
 
 main () {
-    [[ ${debug:-} == true ]] && set -x
+    [[ ${debug:-} == true ]] && {
+        echo "debug: ${debug}"
+        set -x
+    }
     if [[ $# -eq 0 ]] ; then
         set -- -h
     fi
