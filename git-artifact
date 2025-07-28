@@ -225,7 +225,7 @@ cmd_clone() {
     git_local_config
 
     if [[ -e ./setup.sh ]]; then
-        echo "Setup file exists - source it"   
+        echo "Setup file exists - source it"
         # shellcheck source=/dev/null
         . ./setup.sh
     else
