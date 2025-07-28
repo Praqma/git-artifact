@@ -1,13 +1,13 @@
-# git-artifact
+# git-artifact 🚀📦
 
-> Effortless artifact management using Git repositories - seamlessly store, version, and retrieve build artifacts with automated workflows, complete traceability, and simplified DevOps pipelines.
+> Effortless artifact management using Git repositories
 
-## The rational for storing artifacts in git
+## The rationale for storing artifacts in git
 
-I have, over the years in the embbeded enterprise industry, constantly come across many scenarios where zipping, downloading and unzipping generic dependencies and maintaining workspace
-has slowed down turn around time for developers and CI system. Git is a fantastic zipper it self and you get integrity of workspaces for free.
+I have, over the years in the embedded enterprise industry, constantly come across many scenarios where zipping, downloading and unzipping generic dependencies and maintaining workspace
+has slowed down turnaround time for developers and CI system. Git is a fantastic zipper it self and you get integrity of workspaces for free.
 
-Git has always been mentioned to be bad for storing artifacts due to the block chain technology and distrubuted architecture. `git-artifact` makes sure this problem is handled by storing commits "horizontally" using tags rather than the default "stacked" way. It gives a few advantages compared to standard usage of git:
+Git has always been mentioned to be bad for storing artifacts due to the block chain technology and distributed architecture. `git-artifact` makes sure this problem is handled by storing commits "horizontally" using tags rather than the default "stacked" way. It gives a few advantages compared to standard usage of git:
 
 - Firstly; You can garbage collect intermidiate artifacts by just deleting the tag
 - Secondly; You only fetch what you need - even without using shallow.
@@ -80,7 +80,7 @@ gitGraph:
 
 ### Prerequisites
 
-The tool uses tags hence the producer need to tag push-rights. It is also beneficial to have tag delete-rights to clean old artifacts. 
+The tool uses tags hence the producer need to tag push-rights. It is also beneficial to have tag delete-rights to clean old artifacts.
 
 It can also run in branch mode. It can  maintain a `latest` branch which needs to be force pushed or delete + push rights. The concept is similar to docker concept of `<image>/latest`. It is only important if you want to use tracking branches without using `git-artifact`. It could be in context of `submodules` or `repo manifests`.
 
