@@ -1,13 +1,16 @@
 # git-artifact
 
+> Effortless artifact management using Git repositories - seamlessly store, version, and retrieve build artifacts with automated workflows, complete traceability, and simplified DevOps pipelines.
+
 ## The rational for storing artifacts in git
 
 I have, over the years in the embbeded enterprise industry, constantly come across many scenarios where zipping, downloading and unzipping generic dependencies and maintaining workspace
 has slowed down turn around time for developers and CI system. Git is a fantastic zipper it self and you get integrity of workspaces for free.
 
-Git has always been mentioned to be bad for storing artifacts due to the block chain technology and distrubuted architecture. `git-artifact` makes sure this problem is handled by storing commits "horisontally" using tags rather than the default "stacked" way. It gives a few advantages compared to standard usage of git: 
+Git has always been mentioned to be bad for storing artifacts due to the block chain technology and distrubuted architecture. `git-artifact` makes sure this problem is handled by storing commits "horizontally" using tags rather than the default "stacked" way. It gives a few advantages compared to standard usage of git:
+
 - Firstly; You can garbage collect intermidiate artifacts by just deleting the tag
-- Secondly; You only fetch what you need - even without using shallow. 
+- Secondly; You only fetch what you need - even without using shallow.
 
 ### CI/CD integration
 
@@ -40,7 +43,7 @@ A few remarks, aspects and thoughts when retrieving the artifacts
 
 Git normally stacks the history hence you cannot delete commit in the middle of the history. `git-artifact` make a "horizontal" history - i.e the commits are not stacked on top of each other, but next to each other.
 
-The history of git-artifact workflow can basically look like this: 
+The history of git-artifact workflow can basically look like this:
 
 ``` mermaid
 %%{init: { 
@@ -73,9 +76,7 @@ gitGraph:
    checkout latest-2.0
    commit id: "2.0/src" tag: "2.0/src"
    commit id: "2.0/test" tag: "2.0/test"
-``` 
-
-
+```
 
 ### Prerequisites
 
