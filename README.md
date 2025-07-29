@@ -144,7 +144,7 @@ Git normally stacks the history; hence you cannot delete commits in the middle o
 
 The history of the git-artifact workflow can basically look like this:
 
-``` mermaid
+```mermaid
 %%{init: { 
     'gitGraph': {
         'loglevel' : 'debug',
