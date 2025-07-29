@@ -15,13 +15,18 @@ Whether for embedded, enterprise, or CI/CD environments, `git-artifact` streamli
 ## Quick Start
 
 ```bash
-# 1. Install git-artifact binary in your PATH
-curl -o ~/.local/bin/git-artifact https://raw.githubusercontent.com/praqma/git-artifact/main/git-artifact && chmod +x ~/.local/bin/git-artifact
-
-# 2. Create a new repository on GitHub (open this URL in your browser)
+# 1. Create a new repository on GitHub [Make sure to not initialize it with a README or .gitignore]
 open https://github.com/new?name=test-git-artifact
 
+# Waits until you are done
 echo "Press Enter after creating the repository..." && read
+
+# 2. Install git-artifact binary in your PATH
+git clone https://github.com/Praqma/git-artifact.git
+
+export PATH=$(pwd)/git-artifact:$PATH
+
+git artifact -h
 
 # 3. Initialize the repository locally (replace _USER_ with your GitHub username)
 git artifact init --url=git@github.com:_USER_/test-git-artifact.git --path test-git-artifact && cd test-git-artifact
@@ -46,7 +51,7 @@ To install `git-artifact`, simply download or clone this repository and ensure t
 Or quickly install `git-artifact` by running:
 
 ```bash
-mkdir -p ~/.local/bin && curl -o ~/.local/bin/git-artifact https://raw.githubusercontent.com/praqma/git-artifact/main/git-artifact && chmod +x ~/.local/bin/git-artifact
+mkdir -p ~/.local/bin && git clone https://github.com/Praqma/git-artifact.git ~/.local/git-artifact && ln -sf ~/.local/git-artifact/git-artifact ~/.local/bin/git-artifact && git artifact -h
 ```
 
 Make sure `~/.local/bin` is included in your `PATH` environment variable:
