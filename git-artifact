@@ -332,11 +332,11 @@ cmd_fetch-co() {
 find-latest() {
     local -n _latest_tag=${1}
     # https://stackoverflow.com/questions/10649814/get-last-git-tag-from-a-remote-repo-without-cloning
-    _latest_tag=$(git ls-remote --tags --refs --sort='-version:refname' origin "${arg_regex:-*}" | head -n 1 | cut  -f2 | cut -d / -f3-) || {
+    _latest_tag=$(git ls-remote --tags --refs --sort='-version:refname' origin "refs/tags/${arg_regex}" | head -n 1 | cut  -f2 | cut -d / -f3-) || {
         local exit_code=$?
         if [[ $exit_code -ne 141 ]]; then 
             #https://unix.stackexchange.com/questions/580117/debugging-sporadic-141-shell-script-errors
-            echo "ERROR: Something unknown happend.."
+            echo "ERROR: Something unknown happened.."
             exit 1
         fi
     } 
@@ -497,10 +497,10 @@ main () {
                 # shellcheck source=/dev/null
                 . git-sh-setup
                 require_work_tree
-                # if test -z "${arg_regex:-}"  ; then
-                #     echo "INFO: -r|--regex is not set: Defaulting to '*' (all tags)."
-                #     arg_regex="*"
-                # fi
+                if test -z "${arg_regex:-}" ; then
+                    # echo "INFO: -r|--regex is not set: Defaulting to '*' (all tags)."
+                    arg_regex="*"
+                fi
                 ;;
         fetch-tags)
                 # shellcheck source=/dev/null
