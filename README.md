@@ -162,6 +162,28 @@ gitGraph:
    commit id: "2.0/test" tag: "2.0/test"
 ```
 
+## Troubleshooting
+
+### Common Issues
+
+**`git artifact --help` shows "No manual entry for git-artifact"**
+
+- Use `git artifact -h` instead
+- The `--help` flag looks for a system man page which isn't installed with the script
+- The `-h` flag shows the built-in help from the script itself
+
+**Error: `git: 'artifact' is not a git command`**
+
+- Ensure `git-artifact` is in your PATH: `which git-artifact`
+- Verify the script is executable: `ls -la $(which git-artifact)`
+- Try restarting your terminal or running `source ~/.bashrc` (or `~/.zshrc`)
+
+#### Permission denied errors
+
+- Check you have push access to the repository
+- Verify SSH keys are configured: `ssh -T git@github.com`
+- Ensure you have permission to create/push tags
+
 ## Advanced
 
 ### Appending to an artifact
