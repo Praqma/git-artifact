@@ -2,17 +2,7 @@
 
 > Effortless artifact management using Git repositories
 
-## Quick Start (TL;DR)
-
-1. Install binary in PATH: `curl -o ~/.local/bin/git-artifact https://raw.githubusercontent.com/praqma/git-artifact/main/git-artifact && chmod +x ~/.local/bin/git-artifact`
-2. Create repo on github: <https://github.com/new?name=test-git-artifact>
-3. Init the repo locally (Update `_USER_`): `git artifact init --url=git@github.com:_USER_/test-git-artifact.git --path test-git-artifact && cd test-git-artifact`
-4. Add artifact: `touch artifact-1.0 && git artifact add-n-push -t v1.0`
-5. Find & Retrieve: `git artifact find-latest` & `git artifact fetch-co-latest`
-
-No external tools or complex configurations are needed. `git-artifact` leverages Git's powerful version control features to manage artifacts as if they were part of your source code.
-
-### Key Benefits
+## Key Benefits
 
 - **Seamless integration:** Manage artifacts alongside your source code using familiar Git tools.
 - **Efficient storage:** Artifacts are stored as independent commits, so you fetch only what you need.
@@ -21,6 +11,31 @@ No external tools or complex configurations are needed. `git-artifact` leverages
 - **Unified workflow:** Eliminate the need for separate artifact repositories or complex tools.
 
 Whether for embedded, enterprise, or CI/CD environments, `git-artifact` streamlines artifact management by making it a natural extension of your existing Git processes.
+
+## Quick Start
+
+```bash
+# 1. Install git-artifact binary in your PATH
+curl -o ~/.local/bin/git-artifact https://raw.githubusercontent.com/praqma/git-artifact/main/git-artifact && chmod +x ~/.local/bin/git-artifact
+
+# 2. Create a new repository on GitHub (open this URL in your browser)
+open https://github.com/new?name=test-git-artifact
+
+echo "Press Enter after creating the repository..." && read
+
+# 3. Initialize the repository locally (replace _USER_ with your GitHub username)
+git artifact init --url=git@github.com:_USER_/test-git-artifact.git --path test-git-artifact && cd test-git-artifact
+
+# 4. Add an artifact
+touch artifact-1.0
+git artifact add-n-push -t v1.0
+
+# 5. Find and retrieve the latest artifact
+git artifact find-latest
+git artifact fetch-co-latest
+```
+
+No external tools or complex configurations are needed. `git-artifact` leverages Git's powerful version control features to manage artifacts as if they were part of your source code.
 
 ## How to use `git-artifact`
 
@@ -129,7 +144,7 @@ Git normally stacks the history; hence you cannot delete commits in the middle o
 
 The history of the git-artifact workflow can basically look like this:
 
-``` mermaid
+```mermaid
 %%{init: { 
     'gitGraph': {
         'loglevel' : 'debug',

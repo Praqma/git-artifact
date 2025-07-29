@@ -84,20 +84,20 @@ h,help          show the help
 q               quiet
 d               show debug messages
 
-options for 'init' and 'clone'
+ options for 'init' and 'clone'
 u,url=        the remote url
 p,path=       the optional path for init and clone 
 
-options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
+ options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
 b,branch=     use branch for local changes and pushes
 
-options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
+ options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
 t,tag=         the tag to be created
 
-options for 'fetch-co-latest', 'find-latest'
+ options for 'fetch-co-latest', 'find-latest'
 r,regex=       the reg-ex pattern to latest of
 
-options for 'fetch-tags'
+ options for 'fetch-tags'
 s,sha1=       The sha1 of which to get tags from from 
 "
 }
