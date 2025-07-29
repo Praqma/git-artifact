@@ -498,7 +498,7 @@ main () {
                 . git-sh-setup
                 require_work_tree
                 if test -z "${arg_regex:-}" ; then
-                    # echo "INFO: -r|--regex is not set: Defaulting to '*' (all tags)."
+                    echo "INFO: -r|--regex is not set: Defaulting to '*' (all tags)."
                     arg_regex="*"
                 fi
                 ;;
