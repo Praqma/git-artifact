@@ -1,0 +1,8 @@
+# Favicon for the SPA
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" fill="#667eea"/>
+  <path d="M8 12h16v2H8zm0 4h12v2H8zm0 4h10v2H8z" fill="white"/>
+  <circle cx="26" cy="8" r="3" fill="#3498db"/>
+  <circle cx="26" cy="16" r="2" fill="#e74c3c"/>
+  <circle cx="26" cy="24" r="2" fill="#2ecc71"/>
+</svg>
