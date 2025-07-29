@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>git-artifact - Git-based Artifact Management</title>
+    <meta name="description" content="Interactive showcase for git-artifact - a tool for storing and managing artifacts using git repositories">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>git-artifact</h1>
+                <span class="nav-subtitle">Git-based Artifact Management</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#demo" class="nav-link">Demo</a></li>
+                <li><a href="#use-cases" class="nav-link">Use Cases</a></li>
+                <li><a href="#api" class="nav-link">API</a></li>
+                <li><a href="#install" class="nav-link">Install</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="section hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>git-artifact</h1>
+                    <p class="hero-subtitle">Store and manage artifacts using git repositories with horizontal commit history</p>
+                    <div class="hero-buttons">
+                        <a href="#demo" class="btn btn-primary">Try Demo</a>
+                        <a href="#install" class="btn btn-secondary">Get Started</a>
+                    </div>
+                </div>
+                
+                <div class="hero-features">
+                    <div class="feature-card">
+                        <h3>🚀 Fast & Efficient</h3>
+                        <p>Only fetch what you need with git's optimized storage</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔄 CI/CD Ready</h3>
+                        <p>Trigger builds with standard git push/pull workflows</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>💰 Cost Effective</h3>
+                        <p>Use existing git infrastructure, no additional systems</p>
+                    </div>
+                </div>
+
+                <div class="concept-diagram">
+                    <h3>Horizontal Git History Concept</h3>
+                    <div class="git-graph">
+                        <div class="commit-row">
+                            <div class="commit init">init</div>
+                            <div class="commit highlight">main</div>
+                        </div>
+                        <div class="commit-row">
+                            <div class="commit">1.0/bin</div>
+                            <div class="commit">1.0/src</div>
+                        </div>
+                        <div class="commit-row">
+                            <div class="commit">1.1/bin</div>
+                        </div>
+                        <div class="commit-row">
+                            <div class="commit">1.2/bin</div>
+                        </div>
+                        <div class="commit-row">
+                            <div class="commit">2.0/bin</div>
+                            <div class="commit">2.0/src</div>
+                            <div class="commit">2.0/test</div>
+                        </div>
+                    </div>
+                    <p class="diagram-caption">Commits are stored "horizontally" using tags rather than stacked vertically</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Demo Section -->
+        <section id="demo" class="section">
+            <div class="container">
+                <h2>Interactive Demo</h2>
+                <p>Try git-artifact commands and see their effects</p>
+                
+                <div class="demo-container">
+                    <div class="demo-tabs">
+                        <button class="tab-btn active" data-tab="init">Initialize</button>
+                        <button class="tab-btn" data-tab="add">Add Artifact</button>
+                        <button class="tab-btn" data-tab="fetch">Fetch Latest</button>
+                        <button class="tab-btn" data-tab="find">Find Artifacts</button>
+                    </div>
+                    
+                    <div class="demo-content">
+                        <div class="tab-panel active" id="init-tab">
+                            <h3>Initialize Repository</h3>
+                            <div class="command-example">
+                                <pre><code class="language-bash">git artifact init --url=&lt;remote_url&gt; --path my-artifacts</code></pre>
+                                <button class="copy-btn" data-copy="git artifact init --url=<remote_url> --path my-artifacts">Copy</button>
+                            </div>
+                            <div class="explanation">
+                                <p>Creates a new git-artifact repository and initializes it for horizontal commit storage.</p>
+                                <ul>
+                                    <li><code>--url</code>: Remote repository URL</li>
+                                    <li><code>--path</code>: Local directory path</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-panel" id="add-tab">
+                            <h3>Add and Push Artifact</h3>
+                            <div class="command-example">
+                                <pre><code class="language-bash">cd my-artifacts
+cp -rf &lt;build-dir&gt;/my.lib /include .
+git artifact add-n-push -t v1.0</code></pre>
+                                <button class="copy-btn" data-copy="cd my-artifacts&#10;cp -rf <build-dir>/my.lib /include .&#10;git artifact add-n-push -t v1.0">Copy</button>
+                            </div>
+                            <div class="explanation">
+                                <p>Copy your artifacts and commit them with a tag. The workspace is reset to the default branch after push.</p>
+                                <ul>
+                                    <li><code>-t</code>: Tag name for the artifact version</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-panel" id="fetch-tab">
+                            <h3>Fetch Latest Artifact</h3>
+                            <div class="command-example">
+                                <pre><code class="language-bash">git artifact fetch-co-latest --regex 'v*.*'</code></pre>
+                                <button class="copy-btn" data-copy="git artifact fetch-co-latest --regex 'v*.*'">Copy</button>
+                            </div>
+                            <div class="explanation">
+                                <p>Download and checkout the latest artifact matching the regex pattern.</p>
+                                <ul>
+                                    <li><code>--regex</code>: Pattern to match tag names</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-panel" id="find-tab">
+                            <h3>Find Available Artifacts</h3>
+                            <div class="command-example">
+                                <pre><code class="language-bash">git artifact find-latest -r 'v*.*'</code></pre>
+                                <button class="copy-btn" data-copy="git artifact find-latest -r 'v*.*'">Copy</button>
+                            </div>
+                            <div class="explanation">
+                                <p>List available artifacts matching the pattern without downloading them.</p>
+                                <ul>
+                                    <li><code>-r</code>: Regex pattern for tag matching</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section id="use-cases" class="section">
+            <div class="container">
+                <h2>Use Cases</h2>
+                <div class="use-cases-grid">
+                    <div class="use-case-card">
+                        <h3>Library Distribution</h3>
+                        <p>Store compiled libraries with different versions, easily accessible by version tags.</p>
+                        <div class="example">
+                            <pre><code class="language-bash"># Store library artifacts
+git artifact add-n-push -t v1.2.3/release
+git artifact add-n-push -t v1.2.3/debug
+
+# Consumers fetch specific versions
+git artifact fetch-co -t v1.2.3/release</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="use-case-card">
+                        <h3>CI/CD Pipeline Artifacts</h3>
+                        <p>Store build artifacts, test reports, and deployment packages in your CI/CD pipeline.</p>
+                        <div class="example">
+                            <pre><code class="language-bash"># Pipeline stores artifacts by build number
+git artifact add-n-push -t build-${BUILD_NUMBER}/artifacts
+git artifact add-n-push -t build-${BUILD_NUMBER}/test-reports
+
+# Later stages fetch required artifacts
+git artifact fetch-co -t build-${BUILD_NUMBER}/artifacts</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="use-case-card">
+                        <h3>Embedded Development</h3>
+                        <p>Manage firmware images, toolchains, and development dependencies across teams.</p>
+                        <div class="example">
+                            <pre><code class="language-bash"># Store firmware for different targets
+git artifact add-n-push -t firmware-v2.1.0/arm
+git artifact add-n-push -t firmware-v2.1.0/x86
+
+# Developers fetch target-specific firmware
+git artifact fetch-co-latest --regex 'firmware-v*.*\/arm'</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="use-case-card">
+                        <h3>Source Code Dependencies</h3>
+                        <p>Add source code references to artifacts for debugging and traceability.</p>
+                        <div class="example">
+                            <pre><code class="language-bash"># Include source code with artifacts
+git submodule add &lt;source-repo&gt; src
+git artifact add-n-push -t v1.0/with-source
+
+# Full traceability and debugging capability
+git artifact fetch-co -t v1.0/with-source</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Reference Section -->
+        <section id="api" class="section">
+            <div class="container">
+                <h2>API Reference</h2>
+                <div class="api-commands">
+                    <div class="command-group">
+                        <h3>Repository Management</h3>
+                        <div class="command-item">
+                            <h4>init</h4>
+                            <p>Initialize a new artifact repository</p>
+                            <pre><code class="language-bash">git artifact init --url &lt;remote_url&gt; --path &lt;local_path&gt;</code></pre>
+                            <div class="options">
+                                <span class="option">--url</span> Remote repository URL<br>
+                                <span class="option">--path</span> Local directory path<br>
+                                <span class="option">--branch</span> Use branch mode (optional)
+                            </div>
+                        </div>
+                        
+                        <div class="command-item">
+                            <h4>clone</h4>
+                            <p>Clone an existing artifact repository</p>
+                            <pre><code class="language-bash">git artifact clone --url &lt;remote_url&gt; --path &lt;local_path&gt;</code></pre>
+                            <div class="options">
+                                <span class="option">--url</span> Remote repository URL<br>
+                                <span class="option">--path</span> Local directory path
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="command-group">
+                        <h3>Artifact Operations</h3>
+                        <div class="command-item">
+                            <h4>add-n-push</h4>
+                            <p>Add files, commit, and push with tag</p>
+                            <pre><code class="language-bash">git artifact add-n-push -t &lt;tag_name&gt;</code></pre>
+                            <div class="options">
+                                <span class="option">-t, --tag</span> Tag name for the artifact<br>
+                                <span class="option">-b, --branch</span> Use branch mode (optional)
+                            </div>
+                        </div>
+                        
+                        <div class="command-item">
+                            <h4>fetch-co</h4>
+                            <p>Fetch and checkout specific tag</p>
+                            <pre><code class="language-bash">git artifact fetch-co -t &lt;tag_name&gt;</code></pre>
+                            <div class="options">
+                                <span class="option">-t, --tag</span> Tag name to fetch and checkout
+                            </div>
+                        </div>
+                        
+                        <div class="command-item">
+                            <h4>fetch-co-latest</h4>
+                            <p>Fetch and checkout latest matching tag</p>
+                            <pre><code class="language-bash">git artifact fetch-co-latest --regex &lt;pattern&gt;</code></pre>
+                            <div class="options">
+                                <span class="option">-r, --regex</span> Regex pattern for tag matching
+                            </div>
+                        </div>
+                        
+                        <div class="command-item">
+                            <h4>find-latest</h4>
+                            <p>Find latest tag matching pattern</p>
+                            <pre><code class="language-bash">git artifact find-latest -r &lt;pattern&gt;</code></pre>
+                            <div class="options">
+                                <span class="option">-r, --regex</span> Regex pattern for tag matching
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="command-group">
+                        <h3>Utility Commands</h3>
+                        <div class="command-item">
+                            <h4>reset</h4>
+                            <p>Reset workspace and branches</p>
+                            <pre><code class="language-bash">git artifact reset</code></pre>
+                        </div>
+                        
+                        <div class="command-item">
+                            <h4>fetch-tags</h4>
+                            <p>Fetch all tags pointing to specific SHA1</p>
+                            <pre><code class="language-bash">git artifact fetch-tags -s &lt;sha1&gt;</code></pre>
+                            <div class="options">
+                                <span class="option">-s, --sha1</span> SHA1 to get tags from
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation Section -->
+        <section id="install" class="section">
+            <div class="container">
+                <h2>Installation</h2>
+                <div class="install-steps">
+                    <div class="install-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Download git-artifact</h3>
+                            <p>Clone the repository or download the script directly:</p>
+                            <pre><code class="language-bash">git clone https://github.com/Praqma/git-artifact.git
+cd git-artifact</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="install-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Add to PATH</h3>
+                            <p>Make git-artifact available in your PATH:</p>
+                            <pre><code class="language-bash"># Option 1: Copy to system PATH
+sudo cp git-artifact /usr/local/bin/
+
+# Option 2: Add current directory to PATH
+export PATH=$PATH:$(pwd)</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="install-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Verify Installation</h3>
+                            <p>Test that git-artifact is properly installed:</p>
+                            <pre><code class="language-bash">git artifact --help</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="install-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Prerequisites</h3>
+                            <p>Ensure you have the required permissions:</p>
+                            <ul>
+                                <li>Git push rights to create tags</li>
+                                <li>Git delete rights for tag cleanup (optional)</li>
+                                <li>Bash version 4.3 or higher</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-start">
+                    <h3>Quick Start</h3>
+                    <p>Get started with your first artifact repository:</p>
+                    <pre><code class="language-bash"># Initialize a new artifact repository
+git artifact init --url=https://github.com/yourorg/my-artifacts.git --path ./my-artifacts
+
+# Add some files and create your first artifact
+cd my-artifacts
+echo "Hello World" > hello.txt
+git artifact add-n-push -t v1.0.0
+
+# Clone and fetch from another location
+git artifact clone --url=https://github.com/yourorg/my-artifacts.git --path ./consumer
+cd consumer
+git artifact fetch-co-latest --regex 'v*.*'</code></pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>git-artifact</h3>
+                    <p>Git-based artifact management for modern development workflows</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/Praqma/git-artifact">GitHub Repository</a></li>
+                        <li><a href="https://github.com/Praqma/git-artifact/issues">Issues & Support</a></li>
+                        <li><a href="https://github.com/Praqma/git-artifact/blob/main/README.md">Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/Praqma/git-artifact/discussions">Discussions</a></li>
+                        <li><a href="https://github.com/Praqma/git-artifact/blob/main/CONTRIBUTING.md">Contributing</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Praqma. Licensed under the terms of the repository.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
