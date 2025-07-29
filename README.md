@@ -2,7 +2,17 @@
 
 > Effortless artifact management using Git repositories
 
-## Quick Start (TL;DR)
+## Key Benefits
+
+- **Seamless integration:** Manage artifacts alongside your source code using familiar Git tools.
+- **Efficient storage:** Artifacts are stored as independent commits, so you fetch only what you need.
+- **Traceability & integrity:** Tags and Git’s checksums provide clear versioning and authenticity.
+- **Easy cleanup:** Remove intermediate artifacts by simply deleting their tags.
+- **Unified workflow:** Eliminate the need for separate artifact repositories or complex tools.
+
+Whether for embedded, enterprise, or CI/CD environments, `git-artifact` streamlines artifact management by making it a natural extension of your existing Git processes.
+
+## Quick Start
 
 ```bash
 # 1. Install git-artifact binary in your PATH
@@ -26,16 +36,6 @@ git artifact fetch-co-latest
 ```
 
 No external tools or complex configurations are needed. `git-artifact` leverages Git's powerful version control features to manage artifacts as if they were part of your source code.
-
-### Key Benefits
-
-- **Seamless integration:** Manage artifacts alongside your source code using familiar Git tools.
-- **Efficient storage:** Artifacts are stored as independent commits, so you fetch only what you need.
-- **Traceability & integrity:** Tags and Git’s checksums provide clear versioning and authenticity.
-- **Easy cleanup:** Remove intermediate artifacts by simply deleting their tags.
-- **Unified workflow:** Eliminate the need for separate artifact repositories or complex tools.
-
-Whether for embedded, enterprise, or CI/CD environments, `git-artifact` streamlines artifact management by making it a natural extension of your existing Git processes.
 
 ## How to use `git-artifact`
 
