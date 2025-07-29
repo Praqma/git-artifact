@@ -37,7 +37,19 @@ mkdir -p ~/.local/bin && curl -o ~/.local/bin/git-artifact https://raw.githubuse
 Make sure `~/.local/bin` is included in your `PATH` environment variable:
 
 ```bash
+# For bash users
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+```
+
+```zsh
+# For zsh users
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+```
+
+```bash
+# Verify installation
+git artifact -h
+# Note: Use -h instead of --help (--help looks for a man page which isn't installed)
 ```
 
 Now you can use `git artifact` as a regular Git command.
