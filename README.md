@@ -201,7 +201,7 @@ gitGraph:
 #### Permission denied errors
 
 - Check you have push access to the repository
-- Verify SSH keys are configured: `ssh -T git@github.com`
+- Verify the remote connection: `git ls-remote origin`
 - Ensure you have permission to create/push tags
 
 ## Advanced
