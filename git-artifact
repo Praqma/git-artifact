@@ -80,7 +80,7 @@ fetch-co-latest Get latest tag form remote using grep reg-ex and reset hard to i
 fetch-tags      Fetch all tags that points to a sha1 or HEAD - Useful in relation to detached HEAD and submodules
 
 --
-h,help          show the help
+h          show the help
 q               quiet
 d               show debug messages
 
