@@ -1,0 +1,44 @@
+*  (tag: v9.10) v9.10
+| *  (tag: v9.9) v9.9
+|/  
+| *  (tag: v9.8) v9.8
+|/  
+| *  (tag: v9.7) v9.7
+|/  
+| *  (tag: v9.6) v9.6
+|/  
+| *  (tag: v9.5) v9.5
+|/  
+| *  (tag: v9.4) v9.4
+|/  
+| *  (tag: v9.3) v9.3
+|/  
+| *  (tag: v9.2) v9.2
+|/  
+| *  (tag: v9.1) v9.1
+|/  
+| *  (tag: v2.0) v2.0
+|/  
+| *  (tag: v1.0) v1.0
+|/  
+*  (HEAD -> main, origin/main) First commit of git artifact
+Amount of tags total: 12
+Amount of tags to be pruned: 7
+Amount of tags to be kept: 5
+Dry run - not executing prune command
+*  (tag: v9.10) v9.10
+| *  (tag: v9.9) v9.9
+|/  
+| *  (tag: v9.8) v9.8
+|/  
+| *  (tag: v9.7) v9.7
+|/  
+| *  (tag: v9.6) v9.6
+|/  
+*  (HEAD -> main, origin/main) First commit of git artifact
+v9.6
+v9.7
+v9.8
+v9.9
+v9.10
+Tags found: v*.* : 5
