@@ -1,0 +1,46 @@
+# Jekyll configuration for GitHub Pages
+title: "git-artifact"
+description: "Interactive showcase for git-artifact - Git-based artifact management tool"
+url: "https://praqma.github.io"
+baseurl: "/git-artifact"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: null
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Include files that start with underscore
+include:
+  - _headers
+
+# Plugin settings
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+
+# GitHub Pages safe mode
+safe: true
+
+# Collections and defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+
+# SEO and social
+author: "Praqma"
+twitter:
+  username: "praqma"
+  card: "summary_large_image"
+
+# Logo and favicon
+logo: "/assets/images/logo.png"
