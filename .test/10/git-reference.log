@@ -1,0 +1,13 @@
+*  (HEAD -> main, origin/main) Added submodule repo
+| *  (tag: v2.0) v2.0
+|/  
+| *  (tag: v1.0) v1.0
+|/  
+*  First commit of git artifact
+[submodule "submodule-repo"]
+	path = submodule-repo
+	url = ../.remote
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean

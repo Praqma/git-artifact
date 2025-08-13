@@ -69,49 +69,50 @@ function set_opts_spec() {
 
 commands:
 
-init            inititialize a new repository
-clone           clone and existing repository from the remote
-add-n-tag       add and commit files to repo abd leave workspace on tag/untouched
-push            push a tag
-add-n-push      add and commit files to repo and then push them
-fetch-co   	    fetch tag from remote and checkout it out
-reset           reset workspace and branches
-list            list all tags in the repo given a glob pattern
-summary         print a summary of the tags in the repo
-prune           prune tags in the repo given a glob pattern and keep amount of tags
-find-latest     Find the latest tags from reqex and print it
-fetch-co-latest Get latest tag form remote using grep reg-ex and reset hard to it
-fetch-tags      Fetch all tags that points to a sha1 or HEAD - Useful in relation to detached HEAD and submodules
+init             Inititialize a new repository
+clone            Clone and existing repository from the remote
+add-n-tag        Add and commit files to repo abd leave workspace on tag/untouched
+push             push a tag
+add-n-push       Add and commit files to repo and then push them
+fetch-co   	     Fetch tag from remote and checkout it out
+reset            Reset workspace and branches
+list             List all tags in the repo given a glob pattern
+summary          Print a summary of the tags in the repo
+prune            Prune tags in the repo given a glob pattern and keep amount of tags
+find-latest      Find the latest tags from reqex and print it
+fetch-co-latest  Get latest tag form remote using grep reg-ex and reset hard to it
+fetch-tags       Fetch all tags that points to a sha1 or HEAD - Useful in relation to detached HEAD and submodules
+add-as-submodule Add a submodule in a clever way to the current consuming repository. Special operation to avoid big clones .
 --
-h               show the help
-q               quiet
-v,verbose       verbose
-d               show debug messages
+h                show the help
+q                quiet
+v,verbose        verbose
+d                show debug messages
 
  option for 'prune'
-dryrun          dry run - do not execute any commands ( optional for prune)
+dryrun           dry run - do not execute any commands ( optional for prune)
 
- options for 'init' and 'clone'
-u,url=        the remote url
-p,path=       the optional path for init and clone 
+ options for 'init', 'clone' and 'add-as-submodule' 
+u,url=          the remote url
+p,path=         the optional path for init and clone 
 
  options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
-b,branch=     use branch for local changes and pushes
+b,branch=       use branch for local changes and pushes
 
  options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
-t,tag=         the tag to be created
+t,tag=          the tag to be created
 
  options for 'fetch-co-latest', 'find-latest', 'list', 'prune'
-g,glob=       the glob pattern search remote for tags
+g,glob=         the glob pattern search remote for tags
 
  options for 'fetch-tags'
-s,sha1=       The sha1 of which to get tags from from 
+s,sha1=         The sha1 of which to get tags from from 
 
  options for 'prune'
-k,keep=       The amount of tags to keep - default is 20 
+k,keep=         The amount of tags to keep - default is 20 
 
  options for 'summary'
-delimiter=    The delimiter to use for the summary - default is '/'
+delimiter=      The delimiter to use for the summary - default is '/'
 "
 }
 
@@ -393,6 +394,40 @@ cmd_summary() {
     done
 }
 
+cmd_add-as-submodule() {
+    #
+    # This function is operating on the consuming repository and not the git artifact repo.
+    # It is adding a submodule to the current repository. 
+    # It is done as a special operation as the submodule is by default cloned with tags and branch and that it can be huge.
+    #
+
+    if [[ -d ${arg_path} ]]; then
+        echo "ERROR: Directory '${arg_path}' already exists"
+        exit 1
+    fi
+
+    mkdir -p "./.git/modules/"
+    echo "Cloning repo into .git/modules/${arg_path} but working tree is: ${arg_path}"
+    git clone --single-branch --no-tags --separate-git-dir="./.git/modules/${arg_path}" "${arg_remoteurl}" "${arg_path}"
+    
+    echo "Adding the repo as submodule"
+    git submodule add --force "${arg_remoteurl}" "${arg_path}"
+    echo
+    
+    echo "#############################################################################"
+    echo "# HINT: You can use the ../ notation in submodule path to avoid the full url," 
+    echo "#       if your remote server is the same as the submodule server            "
+    echo "#       .. to ensure portability of the repositories                         "
+    echo "#############################################################################"
+    git remote -v
+    echo
+    echo "${arg_path} : ${arg_remoteurl}"
+    echo 
+    echo "You are now ready to commit ..."
+    git status
+
+} 
+
 read_remote_tags_to_map() {
     local -n _tags=${1}
 
@@ -618,6 +653,19 @@ main () {
                 if test -z "${arg_sha1:-}"  ; then
                     echo "INFO: -s|--sha1 is not set: Default to sha1 of HEAD"
                     arg_sha1=$(git rev-parse HEAD)
+                fi
+                ;;
+        add-as-submodule)
+                # shellcheck source=/dev/null
+                . git-sh-setup
+                require_work_tree
+                if test -z "${arg_remoteurl:-}"  ; then
+                    echo "ERROR: --url <url> required for $arg_command"
+                    exit 1
+                fi
+                if test -z "${arg_path:-}"  ; then
+                    echo "ERROR: --arg_path <path> required for $arg_command"
+                    exit 1
                 fi
                 ;;
         *)		printf  "Unknown command: %s\n\n" "$arg_command"
