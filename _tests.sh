@@ -404,13 +404,11 @@ function 9 {
 function 10 {
     test="${FUNCNAME[0]}"
     
-    testcase_synopsis="base-repo ; clone; add-as-submodule"
+    testcase_synopsis="base-repo ; add-as-submodule"
     testcase_header
     { 
         cd $test
         generate_base_repo
-        sleep 1
-        git artifact clone --url "$(pwd)/$remote_tester_repo" --path "$clone_tester_repo"
         
         cd $local_tester_repo
         
