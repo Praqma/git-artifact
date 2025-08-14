@@ -406,10 +406,12 @@ cmd_add-as-submodule() {
         exit 1
     fi
 
-    mkdir -p "./.git/modules/"
-    echo "Cloning repo into .git/modules/${arg_path} but working tree is: ${arg_path}"
-    git clone --single-branch --no-tags --separate-git-dir="./.git/modules/${arg_path}" "${arg_remoteurl}" "${arg_path}"
-    
+    # Ensure parent dir for the submodule gitdir exists (supports nested paths)
+    local modules_gitdir=".git/modules/${arg_path}"
+    mkdir -p "$(dirname "$modules_gitdir")"
+    echo "Cloning repo into ${modules_gitdir} with working tree: ${arg_path}"
+    git clone --single-branch --no-tags --separate-git-dir="${modules_gitdir}" "${arg_remoteurl}" "${arg_path}"
+
     echo "Adding the repo as submodule"
     git submodule add --force "${arg_remoteurl}" "${arg_path}"
     echo
@@ -419,6 +421,8 @@ cmd_add-as-submodule() {
     echo "#       if your remote server is the same as the submodule server            "
     echo "#       .. to ensure portability of the repositories                         "
     echo "#############################################################################"
+    echo
+    echo "Superproject remotes:"
     git remote -v
     echo
     echo "${arg_path} : ${arg_remoteurl}"
