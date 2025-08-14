@@ -90,29 +90,29 @@ v,verbose        verbose
 d                show debug messages
 
  option for 'prune'
-dryrun           dry run - do not execute any commands ( optional for prune)
+dryrun           Dry run - do not execute any commands ( optional for prune)
 
  options for 'init', 'clone' and 'add-as-submodule' 
-u,url=          the remote url
-p,path=         the optional path for init and clone, required for add-as-submodule
+u,url=           Remote url
+p,path=          Optional path for init and clone, required for add-as-submodule
 
  options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
-b,branch=       use branch for local changes and pushes
+b,branch=        Branch for local changes and pushes
 
  options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
-t,tag=          the tag to be created
+t,tag=           Tag to be created
 
  options for 'fetch-co-latest', 'find-latest', 'list', 'prune'
-g,glob=         the glob pattern search remote for tags
+g,glob=          Glob pattern search remote for tags
 
  options for 'fetch-tags'
-s,sha1=         The sha1 of which to get tags from from 
+s,sha1=          Sha1 of which to get tags from from 
 
  options for 'prune'
-k,keep=         The amount of tags to keep - default is 20 
+k,keep=          The amount of tags to keep - default is 20 
 
  options for 'summary'
-delimiter=      The delimiter to use for the summary - default is '/'
+delimiter=       The delimiter to use for the summary - default is '/'
 "
 }
 
@@ -407,8 +407,8 @@ cmd_add-as-submodule() {
     fi
 
     # Ensure parent dir for the submodule gitdir exists (supports nested paths)
+    mkdir -p ".git/modules/"
     local modules_gitdir=".git/modules/${arg_path}"
-    mkdir -p "$(dirname "$modules_gitdir")"
     echo "Cloning repo into ${modules_gitdir} with working tree: ${arg_path}"
     git clone --single-branch --no-tags --separate-git-dir="${modules_gitdir}" "${arg_remoteurl}" "${arg_path}"
 
