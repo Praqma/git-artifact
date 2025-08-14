@@ -94,7 +94,7 @@ dryrun           dry run - do not execute any commands ( optional for prune)
 
  options for 'init', 'clone' and 'add-as-submodule' 
 u,url=          the remote url
-p,path=         the optional path for init and clone, mandatory for add-as-submodule 
+p,path=         the optional path for init and clone, required for add-as-submodule
 
  options for 'init', 'clone', 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
 b,branch=       use branch for local changes and pushes
