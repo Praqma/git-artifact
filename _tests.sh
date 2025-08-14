@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2317
+# shellcheck disable=SC2329
 
 
 function usage() {
@@ -7,8 +9,9 @@ Usage: $(basename "$0") [options]
 
 Options:
   -h, --help        Show this help message and exit
-  --debug           Enable debug mode
+  -d, --debug           Enable debug mode
   --verbose         Enable verbose output
+  -t|--testcase <#> Specify a single test case to run (e.g., 1, 2, 3.1, etc.)
 
 Description:
   This script runs integration tests for git-artifact.
@@ -89,7 +92,6 @@ remote_tester_repo=.remote
 clone_tester_repo=.clone
 global_exit_code=0
 
-# shellcheck disable=SC2317
 function testcase_header() {
     [[ ! -d "${test}" ]] && {
         echo "Creating test directory: ${test} and empty git-reference.log"
@@ -103,13 +105,11 @@ function testcase_header() {
     echo "--------------------------------------------------------------------------------"
 }
 
-# shellcheck disable=SC2317
 function generate_git_test_log() {
     rm -rf .git/refs/remotes/origin/HEAD
     git log --graph --all --oneline --format="%d %s" >> "${root_folder}/${test}/git-test.log"
 }
 
-# shellcheck disable=SC2317
 function eval_testcase() {
     # expect to be in repo to test against
     
@@ -141,7 +141,6 @@ function eval_testcase() {
     echo
 }
 
-# shellcheck disable=SC2317
 function generate_base_repo() {
     rm -rf "${local_tester_repo:?}/" "${remote_tester_repo:?}/" "${clone_tester_repo:?}/"
     git init --bare -b "${default_branch:-main}" $remote_tester_repo || {
@@ -167,7 +166,6 @@ echo "  - <test>/ok.log(all good)"
 echo "  - <test>/nok.log(failed tests)"
 echo
 
-# shellcheck disable=SC2317
 function 1 {
     export test="1"
     testcase_synopsis="base-repo default-branch; clone"
@@ -180,7 +178,6 @@ function 1 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 1.1 {
     export test="1.1"
     testcase_synopsis="base-repo master-branch; clone"
@@ -195,7 +192,6 @@ function 1.1 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 2 {
     test="${FUNCNAME[0]}"
     testcase_synopsis="base-repo ; clone; fetch-co : the repo has two tags and the latest is checked out"
@@ -211,7 +207,6 @@ function 2 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 3 {
     test="${FUNCNAME[0]}"
     testcase_synopsis="base-repo ; clone - gives a repo without any artifacts"
@@ -225,7 +220,6 @@ function 3 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 4 {
     export test="4"
     testcase_synopsis="base-repo ; clone; add-n-push with branch"
@@ -243,7 +237,6 @@ function 4 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 5 {
     test="${FUNCNAME[0]}"
     testcase_synopsis="base-repo ; clone; fetch-co-latest pattern"
@@ -279,7 +272,6 @@ function 5 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 5.1 {
     test="${FUNCNAME[0]}"
     testcase_synopsis="base-repo ; clone; find-latest pattern"
@@ -297,7 +289,6 @@ function 5.1 {
 }
 
 
-# shellcheck disable=SC2317
 function 6 {
     test="${FUNCNAME[0]}"
     testcase_synopsis="base-repo ; clone; fetch-tags"
@@ -315,7 +306,6 @@ function 6 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 7 {
     test="${FUNCNAME[0]}"
     testcase_synopsis="base-repo ; clone; list"
@@ -342,7 +332,6 @@ function 7 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 8 {
     test="${FUNCNAME[0]}"
     testcase_synopsis="base-repo ; clone; summary"
@@ -377,7 +366,6 @@ function 8 {
     eval_testcase
 }
 
-# shellcheck disable=SC2317
 function 9 {
     test="${FUNCNAME[0]}"
     
@@ -400,26 +388,56 @@ function 9 {
             sleep 1
         done
 
-    generate_git_test_log
-    git artifact prune --glob 'v*.*' --keep 5 --dryrun >> ${root_folder}/${test}/git-test.log
-    git artifact prune --glob 'v*.*' --keep 5
-    git fetch origin -pP
+        generate_git_test_log
+        git artifact prune --glob 'v*.*' --keep 5 --dryrun >> ${root_folder}/${test}/git-test.log
+        git artifact prune --glob 'v*.*' --keep 5
+        git fetch origin -pP
 
-    generate_git_test_log
+        generate_git_test_log
 
-    git artifact list --glob 'v*.*' >> ${root_folder}/${test}/git-test.log
-    
+        git artifact list --glob 'v*.*' >> ${root_folder}/${test}/git-test.log
 
     } > ${root_folder}/${test}/run.log 2>&1 || { pwd && cat ${root_folder}/${test}/run.log; }
     eval_testcase
 }
+
+function 10 {
+    test="${FUNCNAME[0]}"
+    
+    testcase_synopsis="base-repo ; add-as-submodule"
+    testcase_header
+    { 
+        cd $test
+        generate_base_repo
+        
+        cd $local_tester_repo
+        
+        git artifact add-as-submodule --url "../$remote_tester_repo" --path submodule-repo
+        
+        git status 
+
+        git commit -m "Added submodule repo"
+        git push origin HEAD:"${default_branch:-main}"
+        git fetch origin -apP
+
+        generate_git_test_log
+        cat .gitmodules >> ${root_folder}/${test}/git-test.log
+        git status >> ${root_folder}/${test}/git-test.log
+        
+    } > ${root_folder}/${test}/run.log 2>&1 || { pwd && cat ${root_folder}/${test}/run.log; }
+    eval_testcase
+}
+
 
 if [[ ${arg_testcase:-} == "" ]]; then 
     # Dynamically list and call test functions
     mapfile -t test_functions < <(declare -F | awk '{print $3}' | grep -E '^[0-9]+(\.[0-9]+)?$')
 
     for fn in "${test_functions[@]}"; do
-        "$fn"
+        "$fn" || {
+            echo "Test case '$fn' failed. Check the logs in .test/$fn/run.log"
+            global_exit_code=1
+        }
     done
 else
     # Run a specific test case if provided
@@ -430,6 +448,8 @@ else
         exit 1
     fi
 fi
+
+
 echo
 echo "########################################"
 echo "All tests completed. Checking results..."
