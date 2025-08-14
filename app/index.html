@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Artifact Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-git-alt"></i> Git Artifact Manager</h1>
+            <p>A standalone application for managing git artifacts and visualizing tag relationships</p>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="commands">
+                <i class="fas fa-terminal"></i> Commands
+            </button>
+            <button class="tab-btn" data-tab="browser">
+                <i class="fas fa-project-diagram"></i> Tag Browser
+            </button>
+            <button class="tab-btn" data-tab="help">
+                <i class="fas fa-question-circle"></i> Help
+            </button>
+        </nav>
+
+        <main class="main-content">
+            <!-- Commands Tab -->
+            <div id="commands" class="tab-content active">
+                <div class="commands-grid">
+                    <!-- Repository Operations -->
+                    <section class="command-section">
+                        <h3><i class="fas fa-folder"></i> Repository Operations</h3>
+                        
+                        <div class="command-group">
+                            <h4>Initialize Repository</h4>
+                            <div class="form-group">
+                                <label for="init-url">Remote URL:</label>
+                                <input type="url" id="init-url" placeholder="https://github.com/user/repo.git">
+                            </div>
+                            <div class="form-group">
+                                <label for="init-path">Local Path:</label>
+                                <input type="text" id="init-path" placeholder="my-artifact-repo">
+                            </div>
+                            <div class="form-group">
+                                <label for="init-branch">Branch (optional):</label>
+                                <input type="text" id="init-branch" placeholder="main">
+                            </div>
+                            <button class="btn btn-primary" onclick="executeCommand('init')">
+                                <i class="fas fa-plus"></i> Initialize
+                            </button>
+                        </div>
+
+                        <div class="command-group">
+                            <h4>Clone Repository</h4>
+                            <div class="form-group">
+                                <label for="clone-url">Remote URL:</label>
+                                <input type="url" id="clone-url" placeholder="https://github.com/user/repo.git">
+                            </div>
+                            <div class="form-group">
+                                <label for="clone-path">Local Path:</label>
+                                <input type="text" id="clone-path" placeholder="my-artifact-repo">
+                            </div>
+                            <button class="btn btn-primary" onclick="executeCommand('clone')">
+                                <i class="fas fa-download"></i> Clone
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Artifact Operations -->
+                    <section class="command-section">
+                        <h3><i class="fas fa-archive"></i> Artifact Operations</h3>
+                        
+                        <div class="command-group">
+                            <h4>Add & Push Artifact</h4>
+                            <div class="form-group">
+                                <label for="artifact-tag">Tag:</label>
+                                <input type="text" id="artifact-tag" placeholder="v1.0">
+                            </div>
+                            <div class="form-group">
+                                <label for="artifact-branch">Branch (optional):</label>
+                                <input type="text" id="artifact-branch" placeholder="latest">
+                            </div>
+                            <button class="btn btn-success" onclick="executeCommand('add-n-push')">
+                                <i class="fas fa-upload"></i> Add & Push
+                            </button>
+                        </div>
+
+                        <div class="command-group">
+                            <h4>Fetch & Checkout</h4>
+                            <div class="form-group">
+                                <label for="fetch-tag">Tag:</label>
+                                <input type="text" id="fetch-tag" placeholder="v1.0">
+                            </div>
+                            <button class="btn btn-info" onclick="executeCommand('fetch-co')">
+                                <i class="fas fa-download"></i> Fetch & Checkout
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Discovery Operations -->
+                    <section class="command-section">
+                        <h3><i class="fas fa-search"></i> Discovery Operations</h3>
+                        
+                        <div class="command-group">
+                            <h4>List Tags</h4>
+                            <div class="form-group">
+                                <label for="list-glob">Pattern:</label>
+                                <input type="text" id="list-glob" placeholder="v*.*" value="*">
+                            </div>
+                            <button class="btn btn-secondary" onclick="executeCommand('list')">
+                                <i class="fas fa-list"></i> List Tags
+                            </button>
+                        </div>
+
+                        <div class="command-group">
+                            <h4>Find Latest</h4>
+                            <div class="form-group">
+                                <label for="latest-glob">Pattern:</label>
+                                <input type="text" id="latest-glob" placeholder="v*.*" value="v*.*">
+                            </div>
+                            <button class="btn btn-secondary" onclick="executeCommand('find-latest')">
+                                <i class="fas fa-search"></i> Find Latest
+                            </button>
+                        </div>
+
+                        <div class="command-group">
+                            <h4>Summary</h4>
+                            <div class="form-group">
+                                <label for="summary-delimiter">Delimiter:</label>
+                                <input type="text" id="summary-delimiter" placeholder="/" value="/">
+                            </div>
+                            <button class="btn btn-secondary" onclick="executeCommand('summary')">
+                                <i class="fas fa-chart-bar"></i> Summary
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Output Section -->
+                <section class="output-section">
+                    <h3><i class="fas fa-terminal"></i> Command Output</h3>
+                    <div class="output-container">
+                        <pre id="command-output">Welcome to Git Artifact Manager!
+Select a command above to get started.
+
+Note: This is a demo interface. In a real implementation, commands would be executed via a backend API.</pre>
+                    </div>
+                    <button class="btn btn-clear" onclick="clearOutput()">
+                        <i class="fas fa-trash"></i> Clear Output
+                    </button>
+                </section>
+            </div>
+
+            <!-- Tag Browser Tab -->
+            <div id="browser" class="tab-content">
+                <div class="browser-header">
+                    <h3><i class="fas fa-project-diagram"></i> Tag Relationship Browser</h3>
+                    <div class="browser-controls">
+                        <button class="btn btn-primary" onclick="loadRepository()">
+                            <i class="fas fa-folder-open"></i> Load Repository
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshTags()">
+                            <i class="fas fa-refresh"></i> Refresh
+                        </button>
+                        <div class="search-box">
+                            <input type="text" id="tag-search" placeholder="Search tags..." onkeyup="filterTags()">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="browser-content">
+                    <div class="sidebar">
+                        <h4>Tag Filters</h4>
+                        <div class="filter-group">
+                            <label>
+                                <input type="checkbox" id="show-all" checked onchange="updateFilter()"> Show All
+                            </label>
+                            <label>
+                                <input type="checkbox" id="show-release" checked onchange="updateFilter()"> Release Tags
+                            </label>
+                            <label>
+                                <input type="checkbox" id="show-dev" checked onchange="updateFilter()"> Development Tags
+                            </label>
+                        </div>
+                        
+                        <h4>View Options</h4>
+                        <div class="view-options">
+                            <label>
+                                <input type="radio" name="view-mode" value="tree" checked onchange="changeViewMode()"> Tree View
+                            </label>
+                            <label>
+                                <input type="radio" name="view-mode" value="graph" onchange="changeViewMode()"> Graph View
+                            </label>
+                            <label>
+                                <input type="radio" name="view-mode" value="timeline" onchange="changeViewMode()"> Timeline
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="visualization-area">
+                        <div id="tag-visualization">
+                            <div class="demo-graph">
+                                <h4>Sample Tag Relationship Graph</h4>
+                                <div class="graph-container">
+                                    <div class="node main-node">
+                                        <i class="fas fa-home"></i>
+                                        <span>main</span>
+                                    </div>
+                                    
+                                    <div class="branch-line branch-1">
+                                        <div class="node tag-node">
+                                            <i class="fas fa-tag"></i>
+                                            <span>v1.0</span>
+                                        </div>
+                                        <div class="node tag-node">
+                                            <i class="fas fa-tag"></i>
+                                            <span>v1.0/src</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="branch-line branch-2">
+                                        <div class="node tag-node">
+                                            <i class="fas fa-tag"></i>
+                                            <span>v1.1</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="branch-line branch-3">
+                                        <div class="node tag-node">
+                                            <i class="fas fa-tag"></i>
+                                            <span>v2.0</span>
+                                        </div>
+                                        <div class="node tag-node">
+                                            <i class="fas fa-tag"></i>
+                                            <span>v2.0/test</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <p class="demo-note">
+                                    <i class="fas fa-info-circle"></i>
+                                    This demonstrates the horizontal tag structure used by git-artifact.
+                                    Each branch represents a version line with related artifacts.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tag-details">
+                    <h4>Tag Details</h4>
+                    <div id="tag-info">
+                        <p>Click on a tag to view details...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Tab -->
+            <div id="help" class="tab-content">
+                <div class="help-content">
+                    <h3><i class="fas fa-question-circle"></i> Git Artifact Manager Help</h3>
+                    
+                    <section class="help-section">
+                        <h4>What is Git Artifact?</h4>
+                        <p>Git Artifact is a tool that uses git repositories for artifact management storage. Instead of stacking commits vertically (traditional git), it creates a "horizontal" history where commits are placed next to each other using tags.</p>
+                        
+                        <h4>Key Benefits</h4>
+                        <ul>
+                            <li>Garbage collect intermediate artifacts by deleting tags</li>
+                            <li>Fetch only what you need without shallow clones</li>
+                            <li>Use existing git infrastructure</li>
+                            <li>Maintain integrity and traceability</li>
+                        </ul>
+                    </section>
+
+                    <section class="help-section">
+                        <h4>Commands Overview</h4>
+                        
+                        <div class="command-help">
+                            <h5>Repository Operations</h5>
+                            <ul>
+                                <li><code>init</code> - Initialize a new git artifact repository</li>
+                                <li><code>clone</code> - Clone an existing git artifact repository</li>
+                                <li><code>reset</code> - Reset workspace and branches</li>
+                            </ul>
+                        </div>
+
+                        <div class="command-help">
+                            <h5>Artifact Management</h5>
+                            <ul>
+                                <li><code>add-n-tag</code> - Add and commit files, create tag</li>
+                                <li><code>add-n-push</code> - Add, commit, tag, and push artifacts</li>
+                                <li><code>push</code> - Push a specific tag or branch</li>
+                                <li><code>fetch-co</code> - Fetch and checkout a specific tag</li>
+                            </ul>
+                        </div>
+
+                        <div class="command-help">
+                            <h5>Discovery</h5>
+                            <ul>
+                                <li><code>list</code> - List all tags matching a pattern</li>
+                                <li><code>find-latest</code> - Find the latest tag matching a pattern</li>
+                                <li><code>fetch-co-latest</code> - Fetch and checkout the latest tag</li>
+                                <li><code>summary</code> - Show summary statistics of tags</li>
+                            </ul>
+                        </div>
+
+                        <div class="command-help">
+                            <h5>Maintenance</h5>
+                            <ul>
+                                <li><code>prune</code> - Remove old tags based on patterns and count</li>
+                                <li><code>fetch-tags</code> - Fetch tags pointing to a specific SHA</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="help-section">
+                        <h4>Tag Browser</h4>
+                        <p>The Tag Browser visualizes the relationship between tags in your git artifact repository. It shows:</p>
+                        <ul>
+                            <li>Horizontal tag structure (branches represent version lines)</li>
+                            <li>Tag hierarchy and relationships</li>
+                            <li>Interactive filtering and search</li>
+                            <li>Multiple visualization modes (tree, graph, timeline)</li>
+                        </ul>
+                    </section>
+
+                    <section class="help-section">
+                        <h4>Getting Started</h4>
+                        <ol>
+                            <li>Use <strong>Initialize Repository</strong> to create a new git artifact repo</li>
+                            <li>Add your artifacts to the repository directory</li>
+                            <li>Use <strong>Add & Push Artifact</strong> with a version tag (e.g., v1.0)</li>
+                            <li>Use the <strong>Tag Browser</strong> to visualize your artifacts</li>
+                            <li>Use <strong>List Tags</strong> or <strong>Find Latest</strong> to discover artifacts</li>
+                        </ol>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

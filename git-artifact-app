@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# git-artifact-app: A standalone web application for git-artifact management
+#
+
+# Check if Python is available
+if ! command -v python3 &> /dev/null; then
+    echo "Error: Python 3 is required but not found."
+    exit 1
+fi
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$SCRIPT_DIR/app"
+
+# Create the app directory if it doesn't exist
+mkdir -p "$APP_DIR"
+
+echo "Starting git-artifact standalone application..."
+echo "Application directory: $APP_DIR"
+echo "Open your browser to: http://localhost:8080"
+echo "Press Ctrl+C to stop the server"
+
+# Start the Python HTTP server in the app directory
+cd "$APP_DIR"
+python3 -m http.server 8080
