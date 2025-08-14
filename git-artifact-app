@@ -6,6 +6,7 @@
 # Check if Python is available
 if ! command -v python3 &> /dev/null; then
     echo "Error: Python 3 is required but not found."
+    echo "Please install Python 3 to run the git-artifact web application."
     exit 1
 fi
 
@@ -14,12 +15,30 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$SCRIPT_DIR/app"
 
 # Create the app directory if it doesn't exist
-mkdir -p "$APP_DIR"
+if [[ ! -d "$APP_DIR" ]]; then
+    echo "Error: Application directory not found: $APP_DIR"
+    echo "Please ensure the 'app' directory exists with the web application files."
+    exit 1
+fi
 
-echo "Starting git-artifact standalone application..."
+# Check if main application files exist
+if [[ ! -f "$APP_DIR/index.html" ]]; then
+    echo "Error: Application files not found in: $APP_DIR"
+    echo "Please ensure index.html, styles.css, and script.js are present."
+    exit 1
+fi
+
+echo "Git Artifact Manager - Standalone Web Application"
+echo "=================================================="
+echo ""
+echo "Starting application server..."
 echo "Application directory: $APP_DIR"
-echo "Open your browser to: http://localhost:8080"
+echo ""
+echo "🌐 Open your browser to: http://localhost:8080"
+echo "📖 Documentation: See STANDALONE-APP.md for details"
+echo ""
 echo "Press Ctrl+C to stop the server"
+echo ""
 
 # Start the Python HTTP server in the app directory
 cd "$APP_DIR"
