@@ -74,7 +74,7 @@ clone            Clone and existing repository from the remote
 add-n-tag        Add and commit files to repo abd leave workspace on tag/untouched
 push             push a tag
 add-n-push       Add and commit files to repo and then push them
-fetch-co   	     Fetch tag from remote and checkout it out
+fetch-co         Fetch tag from remote and checkout it out
 reset            Reset workspace and branches
 list             List all tags in the repo given a glob pattern
 summary          Print a summary of the tags in the repo
