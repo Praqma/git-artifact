@@ -1,3 +1,9 @@
+/* Highlight selected tag */
+.tag-selected {
+    background: #ffe066;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
 /* Reset and base styles */
 * {
     margin: 0;

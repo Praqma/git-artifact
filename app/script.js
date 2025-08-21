@@ -2,17 +2,226 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the application
     initializeApp();
-    
     // Set up event listeners
     setupEventListeners();
-    
-    // Initialize sample data for demo
-    initializeSampleData();
+    // Fetch and display real git tags
+    fetchGitTags();
 });
+// Fetch git tags from backend and display them, with optional repo path
+async function fetchGitTags() {
+    const pathInput = document.getElementById('repo-path-input');
+    const repoPath = pathInput ? pathInput.value.trim() : '';
+    let url = 'http://localhost:8000/tags?';
+    if (repoPath) {
+        url += `path=${encodeURIComponent(repoPath)}`;
+    }
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (response.ok) {
+            window._fullTagTree = data.tree;
+            displayTagTree(data.tree);
+        } else {
+            displayTags([], data.error || 'Unknown error');
+        }
+    } catch (e) {
+        displayTags([], e.message);
+        console.error('Error fetching tags:', e);
+    }
+}
+
+
+// UI filter for tag tree
+function filterTagTree() {
+    const searchInput = document.getElementById('tag-search');
+    const modeInput = document.getElementById('tag-search-mode');
+    const filterRaw = searchInput && searchInput.value.trim();
+    const mode = modeInput ? modeInput.value : 'plain';
+    const tree = window._fullTagTree || {};
+    if (!filterRaw) {
+        displayTagTree(tree);
+        return;
+    }
+    const filter = filterRaw.toLowerCase();
+
+    // Helper for glob to regex (always case-insensitive)
+    function globToRegex(glob) {
+        return new RegExp('^' + glob.replace(/[.+^${}()|[\\]\\]/g, '\\$&').replace(/\\*/g, '.*').replace(/\\?/g, '.') + '$', 'i');
+    }
+
+    // Recursively filter tree by matching the full path
+    function filterTree(node, pathSoFar) {
+        const filtered = {};
+        for (const key in node) {
+            const currentPath = pathSoFar ? pathSoFar + '/' + key : key;
+            let match = false;
+            let pathToTest = currentPath.toLowerCase();
+            if (mode === 'plain') {
+                match = pathToTest.includes(filter);
+            } else if (mode === 'glob') {
+                try {
+                    match = globToRegex(filterRaw).test(currentPath);
+                } catch {}
+            } else if (mode === 'regex') {
+                try {
+                    const re = new RegExp(filterRaw, 'i');
+                    match = re.test(currentPath);
+                } catch {}
+            }
+            if (match) {
+                filtered[key] = node[key];
+            } else {
+                const child = filterTree(node[key], currentPath);
+                if (Object.keys(child).length > 0) {
+                    filtered[key] = child;
+                }
+            }
+        }
+        return filtered;
+    }
+    displayTagTree(filterTree(tree, ''));
+}
+
+
+// Display tag tree in the visualization area with collapsible nodes
+function displayTagTree(tree, parent) {
+    const viz = parent || document.getElementById('tag-visualization');
+    if (!viz) return;
+    if (!parent) viz.innerHTML = '<h4>Repository Tags (Tree View)</h4>';
+    if (!tree || Object.keys(tree).length === 0) {
+        viz.innerHTML += '<p>No tags found.</p>';
+        return;
+    }
+    const ul = document.createElement('ul');
+    ul.className = 'tag-tree';
+    // Helper to get the full path for each node
+    function renderTree(node, parentUl, pathSoFar) {
+        for (const key in node) {
+            const li = document.createElement('li');
+            const hasChildren = Object.keys(node[key]).length > 0;
+            const currentPath = pathSoFar ? pathSoFar + '/' + key : key;
+            let spanTag = `<span>${key}</span>`;
+            if (hasChildren) {
+                li.innerHTML = `<span class=\"tree-toggle\" style=\"cursor:pointer;user-select:none;\">▶</span> <i class=\"fas fa-folder\"></i> ${spanTag}`;
+                const childUl = document.createElement('ul');
+                childUl.style.display = 'none';
+                childUl.style.marginLeft = '24px'; // Indent child nodes
+                renderTree(node[key], childUl, currentPath);
+                li.appendChild(childUl);
+                li.querySelector('.tree-toggle').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (childUl.style.display === 'none') {
+                        childUl.style.display = 'block';
+                        this.textContent = '▼';
+                    } else {
+                        childUl.style.display = 'none';
+                        this.textContent = '▶';
+                    }
+                });
+            } else {
+                li.innerHTML = `<i class=\"fas fa-tag\"></i> ${spanTag}`;
+            }
+            // Add selection handler to all tag/folder spans
+            const tagSpan = li.querySelector('span:last-of-type');
+            if (tagSpan) {
+                tagSpan.style.cursor = 'pointer';
+                tagSpan.addEventListener('click', async function(e) {
+                    e.stopPropagation();
+                    // Remove highlight from all previously selected tags
+                    document.querySelectorAll('.tag-selected').forEach(el => el.classList.remove('tag-selected'));
+                    // Highlight the whole path (all parent <li>s)
+                    let current = tagSpan.parentElement;
+                    while (current && current !== viz) {
+                        if (current.tagName === 'LI') {
+                            const span = current.querySelector('span:last-of-type');
+                            if (span) span.classList.add('tag-selected');
+                        }
+                        current = current.parentElement;
+                    }
+                    // If this is a leaf (no children), fetch tag info
+                    if (!hasChildren) {
+                        const repoPathInput = document.getElementById('repo-path-input');
+                        const repoPath = repoPathInput ? repoPathInput.value.trim() : '';
+                        let url = `http://localhost:8000/tag_info?tag=${encodeURIComponent(currentPath)}`;
+                        if (repoPath) {
+                            url += `&path=${encodeURIComponent(repoPath)}`;
+                        }
+                        const tagInfoDiv = document.getElementById('tag-info');
+                        if (tagInfoDiv) tagInfoDiv.innerHTML = '<em>Loading tag info...</em>';
+                        try {
+                            const resp = await fetch(url);
+                            const data = await resp.json();
+                            if (resp.ok && data.info) {
+                                tagInfoDiv.innerHTML = `<b>Tag:</b> ${data.tag}<br>` +
+                                    `<b>Commit:</b> ${data.info.commit}<br>` +
+                                    `<b>Tagger:</b> ${data.info.tagger}<br>` +
+                                    `<b>Date:</b> ${data.info.date}<br>` +
+                                    `<b>Subject:</b> ${data.info.subject}`;
+                            } else if (resp.status === 404) {
+                                // Show fetch button if tag not found
+                                tagInfoDiv.innerHTML = `<span style='color:red'>${data.error || 'Tag not found.'}</span><br>` +
+                                    `<button id='fetch-tag-btn' class='btn btn-primary'>Fetch Tag from Remote</button>`;
+                                const fetchBtn = document.getElementById('fetch-tag-btn');
+                                if (fetchBtn) {
+                                    fetchBtn.onclick = async function() {
+                                        tagInfoDiv.innerHTML = '<em>Fetching tag from remote...</em>';
+                                        try {
+                                            const resp2 = await fetch('http://localhost:8000/fetch_tag', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ tag: currentPath, path: repoPath })
+                                            });
+                                            const data2 = await resp2.json();
+                                            if (resp2.ok && data2.fetched) {
+                                                // Immediately call tag_info again and display info
+                                                tagInfoDiv.innerHTML = '<em>Fetching tag info...</em>';
+                                                try {
+                                                    let url2 = `http://localhost:8000/tag_info?tag=${encodeURIComponent(currentPath)}`;
+                                                    if (repoPath) {
+                                                        url2 += `&path=${encodeURIComponent(repoPath)}`;
+                                                    }
+                                                    const resp3 = await fetch(url2);
+                                                    const data3 = await resp3.json();
+                                                    if (resp3.ok && data3.info) {
+                                                        tagInfoDiv.innerHTML = `<b>Tag:</b> ${data3.tag}<br>` +
+                                                            `<b>Commit:</b> ${data3.info.commit}<br>` +
+                                                            `<b>Tagger:</b> ${data3.info.tagger}<br>` +
+                                                            `<b>Date:</b> ${data3.info.date}<br>` +
+                                                            `<b>Subject:</b> ${data3.info.subject}`;
+                                                    } else {
+                                                        tagInfoDiv.innerHTML = `<span style='color:red'>${data3.error || 'No info found for tag.'}</span>`;
+                                                    }
+                                                } catch (err3) {
+                                                    tagInfoDiv.innerHTML = `<span style='color:red'>Error loading tag info after fetch</span>`;
+                                                }
+                                            } else {
+                                                tagInfoDiv.innerHTML = `<span style='color:red'>${data2.error || 'Failed to fetch tag.'}</span>`;
+                                            }
+                                        } catch (err2) {
+                                            tagInfoDiv.innerHTML = `<span style='color:red'>Error fetching tag from remote</span>`;
+                                        }
+                                    };
+                                }
+                            } else {
+                                tagInfoDiv.innerHTML = `<span style='color:red'>${data.error || 'No info found for tag.'}</span>`;
+                            }
+                        } catch (err) {
+                            if (tagInfoDiv) tagInfoDiv.innerHTML = `<span style='color:red'>Error loading tag info</span>`;
+                        }
+                    }
+                });
+            }
+            parentUl.appendChild(li);
+        }
+    }
+    renderTree(tree, ul, '');
+    viz.appendChild(ul);
+    viz.appendChild(ul);
+}
 
 function initializeApp() {
-    // Show the commands tab by default
-    showTab('commands');
+    // Show the Tag Browser tab by default
+    showTab('browser');
     
     // Add some welcome text to the output
     updateOutput('Git Artifact Manager initialized successfully!\nReady to execute commands...\n');
@@ -27,7 +236,7 @@ function setupEventListeners() {
             showTab(tabName);
         });
     });
-    
+
     // Form submissions (prevent default behavior)
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
@@ -35,6 +244,17 @@ function setupEventListeners() {
             e.preventDefault();
         });
     });
+
+    // Tag filter: update on input/change for all relevant controls
+    const tagSearch = document.getElementById('tag-search');
+    if (tagSearch) {
+        tagSearch.addEventListener('input', filterTagTree);
+    }
+    const tagSearchMode = document.getElementById('tag-search-mode');
+    if (tagSearchMode) {
+        tagSearchMode.addEventListener('change', filterTagTree);
+    }
+    // Remove case sensitivity event listener (option removed)
 }
 
 function showTab(tabName) {
@@ -279,13 +499,7 @@ function loadRepository() {
 }
 
 function refreshTags() {
-    const timestamp = new Date().toLocaleTimeString();
-    updateOutput(`[${timestamp}] Refreshing tag information...\n`);
-    
-    setTimeout(() => {
-        updateOutput(`[${timestamp}] Tags refreshed successfully!\n\n`);
-        updateTagVisualization();
-    }, 800);
+    fetchGitTags();
 }
 
 function filterTags() {

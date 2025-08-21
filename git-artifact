@@ -102,7 +102,7 @@ b,branch=        Branch for local changes and pushes
  options for 'add-n-tag', 'push', 'add-n-push', 'fetch-co'
 t,tag=           Tag to be created
 
- options for 'fetch-co-latest', 'find-latest', 'list', 'prune'
+ options for 'fetch-co-latest', 'find-latest', 'list', 'prune', 'summary'
 g,glob=          Glob pattern search remote for tags
 
  options for 'fetch-tags'
@@ -375,23 +375,32 @@ cmd_prune() {
 }
 
 cmd_list() {
+    declare -a tags_array
+    amount=0
+    read_remote_tags_to_array tags_array amount
     if [[ ${arg_quiet:-} -ne 1 ]]; then
-        git ls-remote --tags --ref --sort=v:refname origin  "refs/tags/${arg_glob:-*}" | cut -d / -f 3-
+        for line in "${tags_array[@]}"; do
+            echo "${line}"
+        done
     fi
-    printf "Tags found: %s : %s\n" "${arg_glob}" "$(git ls-remote --tags --ref --sort=v:refname origin  "refs/tags/${arg_glob:-*}" | wc -l)"
+    if [[ ${arg_summary:-} -eq 1 ]]; then
+        printf "Tags found: %s : %s\n" "${arg_glob}" "${amount}"
+    fi
 }
 
 cmd_summary() {
-    declare -A tags
-    read_remote_tags_to_map tags
+    declare -A tags_map
+    amount=0
+    read_remote_tags_to_map tags_map amount
     echo "Summary of of amount of tags in using delimiter: ${arg_delimiter} and filter on first column"
     echo "----------------------------------------------------------------------------------------"
  
     # print the hash map with a count of tags of each key
-    for k in "${!tags[@]}"; do
-        amount=$(echo -n "${tags[$k]}" | wc -l)
+    for k in "${!tags_map[@]}"; do
+        amount=$(echo -n "${tags_map[$k]}" | wc -l)
         echo "$k : ${amount}"
     done
+    echo "Total remote tags found: ${amount}"
 }
 
 cmd_add-as-submodule() {
@@ -432,8 +441,29 @@ cmd_add-as-submodule() {
 
 } 
 
+read_remote_tags_to_array() {
+    local -n _tags=${1}
+    local -n _amount=${2}
+
+    while read -r line; do
+        # Extract the tag name from the line
+        tag="${line#*refs/tags/}"
+
+        [[ $line =~ ^[[:space:]]*$  ]] && continue
+
+        local _local_tag=""
+        if git rev-parse "${tag}" >/dev/null 2>&1; then
+            _local_tag=" (+fetched)"
+        fi
+        _tags+=("${tag}${_local_tag}")
+        _amount=$(( _amount + 1 ))
+    done < <(git ls-remote --tags --ref --sort=v:refname origin "refs/tags/${arg_glob}")
+}
+
+
 read_remote_tags_to_map() {
     local -n _tags=${1}
+    local -n _amount=${2}
 
     while read -r line; do
         # Extract the tag name from the line
@@ -441,7 +471,8 @@ read_remote_tags_to_map() {
         key="${key%%"$arg_delimiter"*}"
         info="${line#*"$arg_delimiter"}"
         _tags["$key"]+="$info"$'\n'
-    done < <(git ls-remote --tags --ref --sort=v:refname origin refs/tags/*)
+        _amount=$(( _amount + 1 ))
+    done < <(git ls-remote --tags --ref --sort=v:refname origin "refs/tags/${arg_glob}")
 }
 
 find-latest() {
@@ -647,6 +678,10 @@ main () {
                 # shellcheck source=/dev/null
                 . git-sh-setup
                 require_work_tree
+                if test -z "${arg_glob:-}" ; then
+                    echo "INFO: -g|--glob is not set: Defaulting to '*' (all tags)."
+                    arg_glob="*"
+                fi
                 ;;
         prune)
                 # shellcheck source=/dev/null
