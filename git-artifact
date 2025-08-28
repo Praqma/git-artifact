@@ -26,28 +26,6 @@ function check_environment() {
 
 }
 
-function check_git_environment() {
-        if test -z "$GIT_EXEC_PATH" || ! test -f "$GIT_EXEC_PATH/git-sh-setup" || {
-        test "${PATH#"${GIT_EXEC_PATH}:"}" = "$PATH" &&
-        test ! "$GIT_EXEC_PATH" -ef "${PATH%%:*}" 2>/dev/null
-    }
-    then
-        basename=${0##*[/\\]}
-        echo >&2 'It looks like your git installation broken'
-        echo >&2
-        echo >&2 "Tips:"
-        echo >&2 " - If \`git --exec-path\` does not print the correct path to"
-        echo >&2 "   your git install directory, then set the GIT_EXEC_PATH"
-        echo >&2 "   environment variable to the correct directory."
-        echo >&2 " - Make sure that your \`$basename\` file is either in your"
-        echo >&2 "   PATH or in your git exec path (\`$(git --exec-path)\`)."
-        echo >&2 " - You should run git-subtree as \`git ${basename#git-}\`,"
-        echo >&2 "   not as \`$basename\`." >&2
-        exit 126
-    fi
-
-}
-
 function show_info() {
     echo "git-artifact: use a git repository as artifact management storage"
     echo "Version: $(git --version | cut -d ' ' -f 3)"
@@ -496,6 +474,13 @@ cmd_fetch-tags() {
     fi
 }
 
+function need_workspace() {
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        echo "ERROR: Git workspace not found"
+        exit 1
+    fi
+}
+
 main () {
     [[ ${debug:-} == true ]] && {
         debug "debug: ${debug}"
@@ -578,7 +563,6 @@ main () {
     arg_command=$1
     shift
 
-    which git-sh-setup
     case "$arg_command" in
         init)	if test -z "${arg_remoteurl:-}"  ; then
                     git artifact -h
@@ -593,9 +577,7 @@ main () {
                 fi
                 ;;
         add-n-push)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 if test -z "${arg_artifacttag:-}"  ; then
                     git artifact -h
                     echo "ERROR: -t|--tag <tag> required for $arg_command"
@@ -603,9 +585,7 @@ main () {
                 fi
                 ;;
         add-n-tag)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 if test -z "${arg_artifacttag:-}"  ; then
                     git artifact -h
                     echo "ERROR: -t|--tag <tag> required for $arg_command"
@@ -613,9 +593,7 @@ main () {
                 fi
                 ;;
         fetch-co|push)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 local option_found=false
                 if test -n "${arg_artifacttag:-}"  ; then
                     option_found=true
@@ -630,46 +608,34 @@ main () {
                 fi
                 ;;
         reset)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 ;;
         fetch-co-latest|find-latest|list)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 if test -z "${arg_glob:-}" ; then
                     echo "INFO: -g|--glob is not set: Defaulting to '*' (all tags)."
                     arg_glob="*"
                 fi
                 ;;
         summary)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 ;;
         prune)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 if [[ -z "$arg_keep" ]]; then
                     echo "INFO: --keep is not set: Defaulting to 20"
                     arg_keep=20
                 fi
                 ;;
         fetch-tags)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 if test -z "${arg_sha1:-}"  ; then
                     echo "INFO: -s|--sha1 is not set: Default to sha1 of HEAD"
                     arg_sha1=$(git rev-parse HEAD)
                 fi
                 ;;
         add-as-submodule)
-                # shellcheck source=/dev/null
-                . git-sh-setup
-                require_work_tree
+                need_workspace
                 if test -z "${arg_remoteurl:-}"  ; then
                     echo "ERROR: --url <url> required for $arg_command"
                     exit 1
@@ -697,7 +663,6 @@ main () {
 # Only run main if not being sourced
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     check_environment
-    check_git_environment
     [[ ${arg_debug:-} == true ]] && show_info
     set_opts_spec
     main "$@"
