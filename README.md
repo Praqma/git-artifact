@@ -9,6 +9,34 @@ Git has always been mentioned to be bad for storing artifacts due to the block c
 - Firstly; You can garbage collect intermidiate artifacts by just deleting the tag
 - Secondly; You only fetch what you need - even without using shallow. 
 
+## Quick Start
+
+```bash
+# 1. Create a new repository on GitHub [Make sure to not initialize it with a README or .gitignore]
+open https://github.com/new?name=test-git-artifact
+
+# Waits until you are done
+echo "Press Enter after creating the repository..." && read
+
+# 2. Install git-artifact binary in your PATH
+git clone https://github.com/Praqma/git-artifact.git
+
+export PATH=$(pwd)/git-artifact:$PATH
+
+git artifact -h
+
+# 3. Initialize the repository locally (replace <_OWNER_> with your GitHub username)
+git artifact init --url=https://github.com/<_OWNER_>/test-git-artifact.git --path test-git-artifact && cd test-git-artifact
+
+# 4. Add an artifact
+touch artifact-1.0
+git artifact add-n-push -t v1.0
+
+# 5. Find and retrieve the latest artifact
+git artifact find-latest
+git artifact fetch-co-latest
+```
+
 ### CI/CD integration
 
 Triggering of new builds or tests are done the normal way as known from triggering your pipelines of source code - push or pull - simple..
