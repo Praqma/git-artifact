@@ -79,15 +79,25 @@ function filterTagTree() {
         }
         return filtered;
     }
-    displayTagTree(filterTree(tree, ''));
+    // Auto-expand all folders when showing a filtered view
+    displayTagTree(filterTree(tree, ''), true);
 }
 
 
 // Display tag tree in the visualization area with collapsible nodes
-function displayTagTree(tree, parent) {
-    const viz = parent || document.getElementById('tag-visualization');
+function displayTagTree(tree, parentOrExpand) {
+    // Support optional boolean to expand all in filtered mode, or an explicit parent element
+    let expandAll = false;
+    let viz = document.getElementById('tag-visualization');
+    if (typeof parentOrExpand === 'boolean') {
+        expandAll = parentOrExpand;
+    } else if (parentOrExpand && typeof parentOrExpand.appendChild === 'function') {
+        viz = parentOrExpand;
+    }
     if (!viz) return;
-    if (!parent) viz.innerHTML = '<h4>Repository Tags (Tree View)</h4>';
+    if (!parentOrExpand || typeof parentOrExpand === 'boolean') {
+        viz.innerHTML = '<h4>Repository Tags (Tree View)</h4>';
+    }
     if (!tree || Object.keys(tree).length === 0) {
         viz.innerHTML += '<p>No tags found.</p>';
         return;
@@ -118,6 +128,12 @@ function displayTagTree(tree, parent) {
                         this.textContent = '▶';
                     }
                 });
+                // Auto-expand when in filtered mode
+                if (expandAll) {
+                    childUl.style.display = 'block';
+                    const toggle = li.querySelector('.tree-toggle');
+                    if (toggle) toggle.textContent = '▼';
+                }
             } else {
                 li.innerHTML = `<i class=\"fas fa-tag\"></i> ${spanTag}`;
             }
@@ -215,7 +231,6 @@ function displayTagTree(tree, parent) {
         }
     }
     renderTree(tree, ul, '');
-    viz.appendChild(ul);
     viz.appendChild(ul);
 }
 

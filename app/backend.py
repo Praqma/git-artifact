@@ -11,7 +11,7 @@ CORS(app)
 
 @app.route('/fetch_tag', methods=['POST'])
 def fetch_tag():
-    repo_path = request.json.get('path', '..')
+    repo_path = request.json.get('path', os.getcwd())
     tag = request.json.get('tag')
     if not tag:
         return jsonify({'error': 'Missing tag parameter'}), 400
@@ -36,7 +36,7 @@ def fetch_tag():
 # Endpoint to get info about a specific tag
 @app.route('/tag_info', methods=['GET'])
 def tag_info():
-    repo_path = request.args.get('path', '..')
+    repo_path = request.args.get('path', os.getcwd())
     tag_info = request.args.get('tag')
     if not tag_info:
         return jsonify({'error': 'Missing tag parameter'}), 400
@@ -76,7 +76,7 @@ def build_tag_tree(tags, delimiter='/'):
 
 @app.route('/tags')
 def get_tags():
-    repo_path = request.args.get('path', '..')
+    repo_path = request.args.get('path', os.getcwd())
     glob_pattern = request.args.get('glob', '*')
     if not os.path.isdir(repo_path):
         return jsonify({'error': f'Path not found: {repo_path}'}), 400
