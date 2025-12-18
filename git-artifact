@@ -497,10 +497,12 @@ cmd_fetch-tags() {
 }
 
 main () {
-    [[ ${debug:-} == true ]] && {
+    arg_debug=
+    if [[ ${debug:-} == true ]] ; then 
         debug "debug: ${debug}"
+        arg_debug=1
         set -x
-    }
+    fi
     if [[ $# -eq 0 ]] ; then
         set -- -h
     fi
@@ -508,7 +510,6 @@ main () {
     # Set the arguments array for "real" flag parsing.
     eval "$set_args"
     # Begin "real" flag parsing.
-    arg_debug=
     arg_artifacttag=
     arg_branch=
     arg_path=
@@ -578,7 +579,9 @@ main () {
     arg_command=$1
     shift
 
-    which git-sh-setup
+    [[ -n ${arg_debug} ]] && {
+        which git-sh-setup || true
+    }
     case "$arg_command" in
         init)	if test -z "${arg_remoteurl:-}"  ; then
                     git artifact -h
