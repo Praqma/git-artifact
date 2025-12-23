@@ -1,0 +1,20 @@
+{
+  "name": "git-artifact Showcase",
+  "short_name": "git-artifact",
+  "description": "Interactive showcase for git-artifact - Git-based artifact management tool",
+  "start_url": "/git-artifact/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["developer", "tools", "utilities"],
+  "lang": "en",
+  "scope": "/git-artifact/"
+}
