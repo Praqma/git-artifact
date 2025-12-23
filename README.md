@@ -185,3 +185,29 @@ This way is like promotion in normal artifact managemnet systems, where you prom
 #### Using same repository
 
 This way requires you to create a tag using a release tag pattern. The tag can either be a new unrelated tag or it can be append on top if a release candidate tag.
+
+## Standalone Application
+
+For users who prefer a graphical interface, git-artifact includes a standalone web application that provides:
+
+- **User-friendly interface** for all git-artifact commands
+- **Visual tag browser** showing tag relationships and hierarchy
+- **Interactive forms** with validation and real-time output
+- **Comprehensive help** and documentation built-in
+
+### Quick Start with the GUI
+
+```bash
+./git-artifact-app
+```
+
+Then open http://localhost:8080 in your browser.
+
+The standalone application features:
+- Form-based command execution for all git-artifact operations
+- Visual graph showing the horizontal tag structure
+- Interactive tag details with commit information
+- Search and filtering capabilities
+- Responsive design for desktop and mobile
+
+See [STANDALONE-APP.md](STANDALONE-APP.md) for detailed documentation.
