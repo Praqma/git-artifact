@@ -438,8 +438,6 @@ function 10 {
     eval_testcase
 }
 
-trap 'echo "Script interrupted"; exit 130' INT TERM ERR EXIT HUP QUIT ABRT ALRM PIPE
-
 if [[ ${arg_testcase:-} == "" ]]; then 
     # Dynamically list and call test functions
     mapfile -t test_functions < <(declare -F | awk '{print $3}' | grep -E '^[0-9]+(\.[0-9]+)?$')
@@ -449,7 +447,6 @@ if [[ ${arg_testcase:-} == "" ]]; then
             echo "Test case '$fn' failed. Check the logs in .test/$fn/run.log"
             global_exit_code=1
         }
-        echo "ok"
     done
 else
     # Run a specific test case if provided
