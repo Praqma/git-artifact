@@ -452,7 +452,7 @@ else
     # Run a specific test case if provided
     if declare -F "$arg_testcase" > /dev/null; then
         "$arg_testcase" || {
-            echo "Test case '$fn' failed. Check the logs in .test/$fn/run.log"
+            echo "Test case '$arg_testcase' failed. Check the logs in .test/$arg_testcase/run.log"
             global_exit_code=1
         }
     else
