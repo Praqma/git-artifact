@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2317
-# shellcheck disable=SC2329
 
 
 function usage() {
@@ -106,6 +105,7 @@ function testcase_header() {
 }
 
 function generate_git_test_log() {
+    [[ -d .git ]] || { echo "ERROR: Not in a git repository"; return 1; }
     rm -rf .git/refs/remotes/origin/HEAD
     git log --graph --all --oneline --format="%d %s" >> "${root_folder}/${test}/git-test.log"
 }
@@ -324,8 +324,10 @@ function 7 {
         touch test${test}_1.txt
         git artifact add-n-push -t v${test}.1
 
+        cd ${root_folder}/${test}/$local_tester_repo
         generate_git_test_log
-        git artifact list --glob 'v*.*' >> ${root_folder}/${test}/git-test.log
+        cd ${root_folder}
+        git -C ${root_folder}/${test}/$local_tester_repo artifact list --glob 'v*.*' >> ${root_folder}/${test}/git-test.log
     
 
     } > ${root_folder}/${test}/run.log 2>&1 || { pwd && cat ${root_folder}/${test}/run.log; }
@@ -359,6 +361,7 @@ function 8 {
             sleep 1
         done
 
+        cd ${root_folder}/${test}/$local_tester_repo
         generate_git_test_log
         git artifact summary >> ${root_folder}/${test}/git-test.log
 
@@ -412,7 +415,12 @@ function 10 {
         
         cd $local_tester_repo
         
-        git artifact add-as-submodule --url "../$remote_tester_repo" --path submodule-repo
+        git artifact add-as-submodule --url "../$remote_tester_repo" --path submodule-repo || {
+            issue1="ERROR: Adding the submodule repository failed: submodule-repo"
+        }
+        git artifact add-as-submodule --url "../$remote_tester_repo" --path subm/deeper/submodule-repo || {
+            issue2="ERROR: Adding the submodule repository failed: subm/deeper/submodule-repo"
+        }
         
         git status 
 
@@ -421,6 +429,8 @@ function 10 {
         git fetch origin -apP
 
         generate_git_test_log
+        [[ -n "${issue1:-}" ]] && echo "${issue1}" >> ${root_folder}/${test}/git-test.log
+        [[ -n "${issue2:-}" ]] && echo "${issue2}" >> ${root_folder}/${test}/git-test.log
         cat .gitmodules >> ${root_folder}/${test}/git-test.log
         git status >> ${root_folder}/${test}/git-test.log
         
@@ -428,6 +438,7 @@ function 10 {
     eval_testcase
 }
 
+trap 'echo "Script interrupted"; exit 130' INT TERM ERR EXIT HUP QUIT ABRT ALRM PIPE
 
 if [[ ${arg_testcase:-} == "" ]]; then 
     # Dynamically list and call test functions
@@ -438,11 +449,15 @@ if [[ ${arg_testcase:-} == "" ]]; then
             echo "Test case '$fn' failed. Check the logs in .test/$fn/run.log"
             global_exit_code=1
         }
+        echo "ok"
     done
 else
     # Run a specific test case if provided
     if declare -F "$arg_testcase" > /dev/null; then
-        "$arg_testcase"
+        "$arg_testcase" || {
+            echo "Test case '$fn' failed. Check the logs in .test/$fn/run.log"
+            global_exit_code=1
+        }
     else
         echo "Test case '$arg_testcase' not found."
         exit 1

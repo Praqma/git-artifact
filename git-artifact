@@ -407,10 +407,13 @@ cmd_add-as-submodule() {
     fi
 
     # Ensure parent dir for the submodule gitdir exists (supports nested paths)
-    mkdir -p ".git/modules/"
     local modules_gitdir=".git/modules/${arg_path}"
+    mkdir -p "$(dirname "${modules_gitdir}")"
     echo "Cloning repo into ${modules_gitdir} with working tree: ${arg_path}"
-    git clone --single-branch --no-tags --separate-git-dir="${modules_gitdir}" "${arg_remoteurl}" "${arg_path}"
+    git clone --single-branch --no-tags --separate-git-dir="${modules_gitdir}" "${arg_remoteurl}" "${arg_path}" || {
+        echo "ERROR: Cloning the submodule repository failed"
+        return 1
+    }
 
     echo "Adding the repo as submodule"
     git submodule add --force "${arg_remoteurl}" "${arg_path}"
